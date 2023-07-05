@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:minimal/payment/paymentPage.dart';
 import 'package:minimal/pending.dart';
 import 'package:minimal/test/trialEditItem.dart';
+import 'package:minimal/test/trialPayment.dart';
 import '../api.dart';
 import 'dart:convert';
 
@@ -63,6 +64,8 @@ class _TrialCart extends State<TrialCart> {
 
   @override
   Widget build(BuildContext context) {
+    double totalDiscount = 0.0;
+
     double calcDisc(List<dynamic> otems) {
       double disc = 0;
 
@@ -80,18 +83,19 @@ class _TrialCart extends State<TrialCart> {
     updateDiscount() {
       setState(() {
         newDiscount = calcDisc(widget.otems);
-        final totalDiscount = widget.otems.fold(
+        totalDiscount = widget.otems.fold(
             0, (sum, otems) => sum + int.parse(otems['discount'].toString()));
       });
+      print("Total Disc dalam update: $totalDiscount");
     }
 
-    var disc = updateDiscount();
-    var displayDisc = disc;
+    // var disc = updateDiscount();
+    // var displayDisc = disc;
 
     int nakDisplayQuantity = widget.otems
         .fold(0, (sum, otems) => sum + int.parse(otems['quantity'].toString()));
 
-    double totalDiscount = widget.otems
+    totalDiscount = widget.otems
         .fold(0, (sum, otems) => sum + int.parse(otems['discount'].toString()));
 
     double totalSubtotal = widget.otems
@@ -158,6 +162,7 @@ class _TrialCart extends State<TrialCart> {
                           future: fetchData(),
                           builder: (context, snapshot) {
                             if (!snapshot.hasData) {
+                              print("abd");
                               return const Center(
                                 child: CircularProgressIndicator(),
                               );
@@ -184,7 +189,6 @@ class _TrialCart extends State<TrialCart> {
                                 });
 
                                 print(typeIDMap);
-                                print("newsubtotal: $newTotalPrice");
                               }
 
                               return ListView.builder(
@@ -221,6 +225,8 @@ class _TrialCart extends State<TrialCart> {
                                         itemCount: itemList.length,
                                         itemBuilder: (context, index) {
                                           final itemData = itemList[index];
+                                          var otemID =
+                                              itemData['otemID'].toString();
 
                                           // Create a list to hold the staffCount and staffName for each otems item
                                           List<int> staffCounts = [];
@@ -255,294 +261,315 @@ class _TrialCart extends State<TrialCart> {
                                             staffNames.add(staffName);
                                           }
 
-                                          return InkWell(
-                                            onTap: () async {
-                                              final updatedItemData =
-                                                  await showModalBottomSheet(
-                                                context: context,
-                                                isScrollControlled: true,
-                                                shape:
-                                                    const RoundedRectangleBorder(
+                                          return Builder(
+                                            builder: (context) => Dismissible(
+                                              key: Key(otemID),
+                                              direction:
+                                                  DismissDirection.endToStart,
+                                              background: Container(
+                                                color: Colors.red,
+                                                child: const Icon(Icons.delete,
+                                                    color: Colors.white),
+                                              ),
+                                              onDismissed: (direction) {
+                                                deleteItem(otemID);
+                                                
+                                                // setState(() {
+                                                //   widget.otems.removeWhere(
+                                                //       (item) =>
+                                                //           item['otemID'] ==
+                                                //           otemID);
+                                                // });
+                                              },
+                                              child: InkWell(
+                                                onTap: () async {
+                                                  final updatedItemData =
+                                                      await showModalBottomSheet(
+                                                    context: context,
+                                                    isScrollControlled: true,
+                                                    shape: const RoundedRectangleBorder(
                                                         borderRadius:
                                                             BorderRadius.vertical(
                                                                 top: Radius
                                                                     .circular(
                                                                         20))),
-                                                builder:
-                                                    (BuildContext context) {
-                                                  return SizedBox(
-                                                    height: 750,
-                                                    child: TrialEditItem(
-                                                      cartOrderId:
-                                                          widget.cartOrderId,
-                                                      otemOtemID:
-                                                          itemData['otemID']
-                                                              .toString(),
-                                                      otemSkuID:
-                                                          itemData['skuID']
-                                                              .toString(),
-                                                      itemData: itemData,
-                                                      staff: staff,
-                                                      otem: widget.otems,
-                                                      updateQuantity:
-                                                          updateQuantity,
-                                                      updateRemarks:
-                                                          updateRemarks,
-                                                      updateDiscount:
-                                                          updateDiscount,
-                                                    ),
-                                                  );
-                                                },
-                                              );
-
-                                              if (updatedItemData != null) {
-                                                final index = widget.otems
-                                                    .indexWhere((item) =>
-                                                        item['otemID'] ==
-                                                        updatedItemData[
-                                                            'otemID']);
-                                                if (index != -1) {
-                                                  setState(() {
-                                                    widget.otems[index] =
-                                                        updatedItemData;
-                                                  });
-                                                }
-                                              }
-                                              print("updatedItemData");
-                                              print(updatedItemData);
-                                            },
-                                            child: Card(
-                                              elevation: 0,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        Text(
-                                                          itemData['itemName']
-                                                              .toString(),
-                                                          style:
-                                                              const TextStyle(
-                                                            fontSize: 16,
-                                                            color: Colors.black,
-                                                          ),
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      return SizedBox(
+                                                        height: 750,
+                                                        child: TrialEditItem(
+                                                          cartOrderId:
+                                                              widget.cartOrderId,
+                                                          otemOtemID:
+                                                              itemData['otemID']
+                                                                  .toString(),
+                                                          otemSkuID:
+                                                              itemData['skuID']
+                                                                  .toString(),
+                                                          itemData: itemData,
+                                                          staff: staff,
+                                                          otem: widget.otems,
+                                                          updateQuantity:
+                                                              updateQuantity,
+                                                          updateRemarks:
+                                                              updateRemarks,
+                                                          updateDiscount:
+                                                              updateDiscount,
                                                         ),
-                                                        const SizedBox(
-                                                            width: 30),
-                                                        Row(
+                                                      );
+                                                    },
+                                                  );
+                                          
+                                                  if (updatedItemData != null) {
+                                                    final index = widget.otems
+                                                        .indexWhere((item) =>
+                                                            item['otemID'] ==
+                                                            updatedItemData[
+                                                                'otemID']);
+                                                    if (index != -1) {
+                                                      setState(() {
+                                                        widget.otems[index] =
+                                                            updatedItemData;
+                                                      });
+                                                    }
+                                                  }
+                                                  print("updatedItemData");
+                                                  print(updatedItemData);
+                                                },
+                                                child: Card(
+                                                  elevation: 0,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(8),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.start,
+                                                    children: [
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                                8.0),
+                                                        child: Row(
                                                           mainAxisAlignment:
                                                               MainAxisAlignment
                                                                   .spaceBetween,
                                                           children: [
                                                             Text(
-                                                              itemData[
-                                                                      'quantity']
+                                                              itemData['itemName']
                                                                   .toString(),
                                                               style:
                                                                   const TextStyle(
                                                                 fontSize: 16,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: Colors
-                                                                    .black,
+                                                                color:
+                                                                    Colors.black,
                                                               ),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 30),
+                                                            Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .spaceBetween,
+                                                              children: [
+                                                                Text(
+                                                                  itemData[
+                                                                          'quantity']
+                                                                      .toString(),
+                                                                  style:
+                                                                      const TextStyle(
+                                                                    fontSize: 16,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color: Colors
+                                                                        .black,
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
                                                           ],
                                                         ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            left: 8.0),
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Row(
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets.only(
+                                                                left: 8.0),
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
                                                           children: [
-                                                            Container(
-                                                              width: 120,
-                                                              height: 30,
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                color: Colors
-                                                                    .grey[200],
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            5.0),
-                                                              ),
-                                                              child: staffCounts[
-                                                                          index] >
-                                                                      0
-                                                                  ? Row(
-                                                                      mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .center,
-                                                                      children: [
-                                                                        Image
-                                                                            .asset(
+                                                            Row(
+                                                              children: [
+                                                                Container(
+                                                                  width: 120,
+                                                                  height: 30,
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    color: Colors
+                                                                            .grey[
+                                                                        200],
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(
+                                                                                5.0),
+                                                                  ),
+                                                                  child: staffCounts[
+                                                                              index] >
+                                                                          0
+                                                                      ? Row(
+                                                                          mainAxisAlignment:
+                                                                              MainAxisAlignment.center,
+                                                                          children: [
+                                                                            Image
+                                                                                .asset(
+                                                                              'lib/assets/Staff.png',
+                                                                              height:
+                                                                                  25,
+                                                                              width:
+                                                                                  30,
+                                                                            ),
+                                                                            const SizedBox(
+                                                                                width: 10),
+                                                                            Text(
+                                                                              staffCounts[index] == 0
+                                                                                  ? 'Staffs'
+                                                                                  : staffNames[index],
+                                                                              style:
+                                                                                  const TextStyle(
+                                                                                fontSize: 16,
+                                                                                color: Colors.black,
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        )
+                                                                      : Image
+                                                                          .asset(
                                                                           'lib/assets/Staff.png',
                                                                           height:
                                                                               25,
                                                                           width:
                                                                               30,
                                                                         ),
+                                                                ),
+                                          
+                                                                const SizedBox(
+                                                                    width: 10),
+                                                                Visibility(
+                                                                  visible: itemData[
+                                                                          'discount'] !=
+                                                                      0, // Check if discount is not zero
+                                                                  child:
+                                                                      Container(
+                                                                    width: 80,
+                                                                    height: 30,
+                                                                    decoration:
+                                                                        BoxDecoration(
+                                                                      color: Colors
+                                                                              .grey[
+                                                                          200],
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              5.0),
+                                                                    ),
+                                                                    child: Row(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .center,
+                                                                      children: [
                                                                         const SizedBox(
                                                                             width:
                                                                                 10),
                                                                         Text(
-                                                                          staffCounts[index] == 0
-                                                                              ? 'Staffs'
-                                                                              : staffNames[index],
+                                                                          '- ' +
+                                                                              itemData['discount'].toStringAsFixed(2),
                                                                           style:
                                                                               const TextStyle(
                                                                             fontSize:
                                                                                 16,
                                                                             color:
-                                                                                Colors.black,
+                                                                                Colors.green,
                                                                           ),
                                                                         ),
                                                                       ],
-                                                                    )
-                                                                  : Image.asset(
-                                                                      'lib/assets/Staff.png',
-                                                                      height:
-                                                                          25,
-                                                                      width: 30,
                                                                     ),
-                                                            ),
-
-                                                            const SizedBox(
-                                                                width: 10),
-                                                            Visibility(
-                                                              visible: itemData[
-                                                                      'discount'] !=
-                                                                  0, // Check if discount is not zero
-                                                              child: Container(
-                                                                width: 80,
-                                                                height: 30,
-                                                                decoration:
-                                                                    BoxDecoration(
-                                                                  color: Colors
-                                                                          .grey[
-                                                                      200],
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              5.0),
+                                                                  ),
                                                                 ),
-                                                                child: Row(
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .center,
-                                                                  children: [
-                                                                    const SizedBox(
-                                                                        width:
-                                                                            10),
-                                                                    Text(
-                                                                      '- ' +
-                                                                          itemData['discount']
-                                                                              .toStringAsFixed(2),
-                                                                      style:
-                                                                          const TextStyle(
-                                                                        fontSize:
-                                                                            16,
-                                                                        color: Colors
-                                                                            .green,
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            Spacer(), // Added Spacer widget
-                                                            Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                          .only(
-                                                                      right:
-                                                                          8.0),
-                                                              child: Text(
-                                                                itemData[
-                                                                        'price']
-                                                                    .toStringAsFixed(
-                                                                        2),
-                                                                style:
-                                                                    const TextStyle(
-                                                                  fontSize: 16,
-                                                                  color: Colors
-                                                                      .blue,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                      .only(
-                                                                  top: 8.0),
-                                                          child: Column(
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Visibility(
-                                                                visible: itemData[
-                                                                        'remarks']
-                                                                    .toString()
-                                                                    .isNotEmpty,
-                                                                child:
-                                                                    const Divider(),
-                                                              ),
-                                                              Visibility(
-                                                                visible: itemData[
-                                                                        'remarks']
-                                                                    .toString()
-                                                                    .isNotEmpty,
-                                                                child: Padding(
+                                                                Spacer(), // Added Spacer widget
+                                                                Padding(
                                                                   padding:
                                                                       const EdgeInsets
-                                                                              .all(
-                                                                          8.0),
+                                                                              .only(
+                                                                          right:
+                                                                              8.0),
                                                                   child: Text(
-                                                                    '* ' +
-                                                                        itemData['remarks']
-                                                                            .toString(),
+                                                                    itemData[
+                                                                            'price']
+                                                                        .toStringAsFixed(
+                                                                            2),
                                                                     style:
                                                                         const TextStyle(
                                                                       fontSize:
                                                                           16,
                                                                       color: Colors
-                                                                          .black,
+                                                                          .blue,
                                                                     ),
                                                                   ),
                                                                 ),
+                                                              ],
+                                                            ),
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                          .only(
+                                                                      top: 8.0),
+                                                              child: Column(
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .start,
+                                                                children: [
+                                                                  Visibility(
+                                                                    visible: itemData[
+                                                                            'remarks']
+                                                                        .toString()
+                                                                        .isNotEmpty,
+                                                                    child:
+                                                                        const Divider(),
+                                                                  ),
+                                                                  Visibility(
+                                                                    visible: itemData[
+                                                                            'remarks']
+                                                                        .toString()
+                                                                        .isNotEmpty,
+                                                                    child:
+                                                                        Padding(
+                                                                      padding:
+                                                                          const EdgeInsets.all(
+                                                                              8.0),
+                                                                      child: Text(
+                                                                        '* ' +
+                                                                            itemData['remarks']
+                                                                                .toString(),
+                                                                        style:
+                                                                            const TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                          color: Colors
+                                                                              .black,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
                                                               ),
-                                                            ],
-                                                          ),
+                                                            ),
+                                                          ],
                                                         ),
-                                                      ],
-                                                    ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                ],
+                                                ),
                                               ),
                                             ),
                                           );
@@ -781,7 +808,7 @@ class _TrialCart extends State<TrialCart> {
                     ],
                   ),
                   Visibility(
-                  visible: widget.otems.any((item) => item['discount'] != 0),
+                    visible: widget.otems.any((item) => item['discount'] != 0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -822,7 +849,7 @@ class _TrialCart extends State<TrialCart> {
                             builder: (BuildContext context) {
                               return SizedBox(
                                   height: 750,
-                                  child: PaymentPage(
+                                  child: TrialPaymentPage(
                                     calculateSubtotal: allTotal,
                                     cartOrderId: widget.cartOrderId,
                                     otems: widget.otems,
@@ -874,14 +901,40 @@ class _TrialCart extends State<TrialCart> {
       final responsebody = await response.stream.bytesToString();
       final body = json.decode(responsebody);
 
-      widget.otems =
-          body['otems'].where((item) => item['deleteDate'] == 0).toList();
-      skus = body['skus'];
-      staff = body['staffs'];
+      if (mounted) {
+        // setState(() {
+        widget.otems =
+            body['otems'].where((item) => item['deleteDate'] == 0).toList();
+        skus = body['skus'];
+        staff = body['staffs'];
+
+        //}
+        // );
+      }
 
       print("otems fetchDAta: ${widget.otems}");
 
       return widget.otems;
+    } else {
+      print(response.reasonPhrase);
+    }
+  }
+
+  Future deleteItem(String otemID) async {
+    int otemInt = int.parse(otemID);
+    var headers = {'token': '$token'};
+    var request = http.Request(
+        'POST',
+        Uri.parse(
+            'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemInt/delete'));
+
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      print(await response.stream.bytesToString());
+      print("done");
     } else {
       print(response.reasonPhrase);
     }

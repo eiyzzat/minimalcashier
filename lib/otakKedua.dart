@@ -930,3 +930,28 @@
 //     );
 //   }
 // }
+
+// typeIDMap[typeID]!.add({
+//                                   'itemName': item2['name'].toString(),
+//                                   'otemID': widget.otems.isNotEmpty &&
+//                                           i < widget.otems.length
+//                                       ? widget.otems[i]['otemID']
+//                                       : '',
+//                                   'skuID': skus[i]['skuID'],
+//                                   'quantity': widget.otems.isNotEmpty &&
+//                                           i < widget.otems.length
+//                                       ? widget.otems[i]['quantity']
+//                                       : '',
+//                                   'discount': widget.otems.isNotEmpty &&
+//                                           i < widget.otems.length
+//                                       ? widget.otems[i]['discount']
+//                                       : 0,
+//                                   'price': widget.otems.isNotEmpty &&
+//                                           i < widget.otems.length
+//                                       ? widget.otems[i]['price']
+//                                       : 0,
+//                                   'remarks': widget.otems.isNotEmpty &&
+//                                           i < widget.otems.length
+//                                       ? widget.otems[i]['remarks']
+//                                       : '',
+//                                 });

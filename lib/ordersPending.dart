@@ -254,7 +254,8 @@ class _OrdersPendingState extends State<OrdersPending> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => CarMemberPage()),
+                          MaterialPageRoute(
+                              builder: (context) => CarMemberPage()),
                         );
                       },
                       child: Container(
@@ -425,89 +426,101 @@ class _OrdersPendingState extends State<OrdersPending> {
                 child: Padding(
                   padding:
                       const EdgeInsets.only(top: 5.0, left: 8.0, right: 8.0),
-                  child: Card(
-                    child: Column(children: [
-                      Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Image.asset(
-                              "lib/assets/Artboard 40 copy 2.png",
-                              width: 30,
-                              height: 30,
+                  child: Dismissible(
+                    key: Key(orderId.toString()),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      color: Colors.red,
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    onDismissed: (direction) {
+                      deleteOrder(orderId);
+                      print(orderId);
+                    },
+                    child: Card(
+                      child: Column(children: [
+                        Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Image.asset(
+                                "lib/assets/Artboard 40 copy 2.png",
+                                width: 30,
+                                height: 30,
+                              ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              left: 16,
-                            ), // Add padding to the left
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  memberName,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.black,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  formattedNumber,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Divider(),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.access_time,
-                                  size: 18,
-                                  color: Colors.grey,
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    DateFormat('dd-MM-yyyy').format(
-                                        DateTime.fromMillisecondsSinceEpoch(
-                                            order['createDate'] * 1000)),
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ),
-                                Spacer(),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    order['amount'].toStringAsFixed(2),
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                left: 16,
+                              ), // Add padding to the left
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    memberName,
+                                    style: const TextStyle(
                                       fontSize: 18,
+                                      color: Colors.black,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  SizedBox(height: 8),
+                                  Text(
+                                    formattedNumber,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      )
-                    ]),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Divider(),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.access_time,
+                                    size: 18,
+                                    color: Colors.grey,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8.0),
+                                    child: Text(
+                                      DateFormat('dd-MM-yyyy').format(
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                              order['createDate'] * 1000)),
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                  Spacer(),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8.0),
+                                    child: Text(
+                                      order['amount'].toStringAsFixed(2),
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      ]),
+                    ),
                   ),
                 ),
               );
@@ -516,6 +529,23 @@ class _OrdersPendingState extends State<OrdersPending> {
         }
       },
     );
+  }
+
+  Future deleteOrder(int orderId) async {
+    var headers = {'token': token};
+    var request = http.Request('POST',
+        Uri.parse('https://order.tunai.io/loyalty/order/$orderId/delete'));
+
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      print(await response.stream.bytesToString());
+      print("delete order");
+    } else {
+      print(response.reasonPhrase);
+    }
   }
 
   Future<Map<String, dynamic>> fetchPendingAndMembers() async {

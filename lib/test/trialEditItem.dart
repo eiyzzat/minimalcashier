@@ -18,6 +18,7 @@ class TrialEditItem extends StatefulWidget {
       required this.updateQuantity,
       required this.updateRemarks,
       required this.updateDiscount,
+      
       Key? key});
 
   final String cartOrderId;
@@ -29,6 +30,7 @@ class TrialEditItem extends StatefulWidget {
   final Function updateQuantity;
   final Function updateRemarks;
   final Function updateDiscount;
+  
 
   @override
   State<TrialEditItem> createState() => _TrialEditItemState();

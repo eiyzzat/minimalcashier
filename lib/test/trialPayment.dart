@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:minimal/payment/payment.dart';
+import 'package:minimal/test/trialReceipt.dart';
 import '../api.dart';
 import 'dart:convert';
 
@@ -335,7 +336,7 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
             builder: (BuildContext context) {
               return SizedBox(
                   height: 750,
-                  child: PaymentReceipt(
+                  child: TrialPaymentReceipt(
                     receiptCalculateSubtotal: widget.calculateSubtotal,
                     cartOrderId: widget.cartOrderId,
                     otems: widget.otems,
