@@ -9,7 +9,6 @@ import '../allProducts.dart';
 import '../allServices.dart';
 import '../api.dart';
 
-
 Map<String, Map<int, dynamic>> storeServiceAndProduct = {
   "services": selectedService,
   "products": selectedProduct,
@@ -46,12 +45,19 @@ class _trialMenuPage extends State<trialMenuPage> {
     super.initState();
   }
 
+  void reset (){
+    selectedService.clear();
+    selectedProduct.clear();
+    selectedItems.clear();
+  }
+
   Future<void> apicreateOtemsByService(
     Map<String, Map<int, dynamic>> storeServiceAndProduct,
     BuildContext context,
     int combinedTotalItems,
     double combineTotalPrice,
   ) async {
+    print('otemsssssssssssssss\n $otems');
     var existingSkus = Set<int>();
 
     for (var entry in storeServiceAndProduct.entries) {
@@ -92,18 +98,24 @@ class _trialMenuPage extends State<trialMenuPage> {
         } else {
           final responsebody = await response.stream.bytesToString();
           final body = json.decode(responsebody);
-          otems = body['otems'].where((item) => item['deleteDate'] == 0).toList();
+          otems =
+              body['otems'].where((item) => item['deleteDate'] == 0).toList();
           skus = body['skus'];
 
           // Add skuID to existingSkus
           existingSkus.add(skuID);
         }
       }
-      print('Dalam store: $storeServiceAndProduct');
+      //print('Dalam store: $storeServiceAndProduct');
     }
-    print('combine');
-    print(combinedTotalItems);
+    // print('combine');
+    // print(combinedTotalItems);
     // Move the Navigator.push code here
+    setState(() {
+      storeServiceAndProduct = {};
+    });
+    // print("setstate");
+    // print(storeServiceAndProduct);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -111,7 +123,8 @@ class _trialMenuPage extends State<trialMenuPage> {
           cartName: widget.memberName,
           cartOrderId: widget.orderId,
           totalItems: combinedTotalItems,
-          totalPrice: combineTotalPrice, otems: otems,
+          totalPrice: combineTotalPrice,
+          otems: otems,
         ),
       ),
     );
@@ -421,17 +434,17 @@ class _trialMenuPage extends State<trialMenuPage> {
                                     totalPrice + ptotalPrice;
                                 return ElevatedButton(
                                   onPressed: () async {
-                                    setState(() {
-                                      apicreateOtemsByService(
+                                   
+                                      await apicreateOtemsByService(
                                         storeServiceAndProduct,
                                         context,
                                         combinedTotalItems,
                                         combineTotalPrice,
                                       );
+                                      reset();
                                       print(
                                           'Dalam store: $storeServiceAndProduct');
-                                      
-                                    });
+                                    
                                   },
                                   child: Text(
                                     "$combinedTotalItems item | ${combineTotalPrice.toStringAsFixed(2)} ",

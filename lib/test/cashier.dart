@@ -5,9 +5,12 @@ import 'package:minimal/testingSelectStaff.dart';
 import '../api.dart';
 
 class Cashier extends StatefulWidget {
-  const Cashier({Key? key, required this.cartOrderId});
+   Cashier({Key? key, 
+  required this.cartOrderId,
+  required this.inCashier});
 
   final String cartOrderId;
+  Map<String, dynamic>? inCashier;
 
   @override
   State<Cashier> createState() => _CashierState();
@@ -23,6 +26,12 @@ class _CashierState extends State<Cashier> {
 
   @override
   Widget build(BuildContext context) {
+
+    selectedStaffDetails = widget.inCashier;
+    
+    print("masuk: $selectedStaffDetails");
+    print("select");
+    print(selectedStaffDetails);
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -184,7 +193,7 @@ class _CashierState extends State<Cashier> {
               print("dalam cashier: $selectedStaffDetails");
               // print("dalam cashier: ${selectedStaffDetails!['selectedStaff'][0]}");
               addCashier(selectedStaffDetails);
-              Navigator.pop(context, selectedStaffDetails);
+              Navigator.pop(context, selectedStaffDetails, );
             },
             child: const Text('Add'),
           ),
@@ -309,12 +318,12 @@ class _CashierState extends State<Cashier> {
     request.headers.addAll(headers);
 
     http.StreamedResponse response = await request.send();
-
+    print(staffIDString);
     if (response.statusCode == 200) {
       print(await response.stream.bytesToString());
+      print("dah add cashier");
     } else {
       print(response.reasonPhrase);
-      print(staffIDString);
     }
   }
 }

@@ -23,6 +23,9 @@ class OrdersPending extends StatefulWidget {
 class _OrdersPendingState extends State<OrdersPending> {
   List<dynamic> orders = [];
   List<dynamic> members = [];
+  List<dynamic> walkin = [];
+
+  int walkInMemberID = 0;
 
   Widget xIcon() {
     return IconButton(
@@ -47,6 +50,7 @@ class _OrdersPendingState extends State<OrdersPending> {
   @override
   void initState() {
     super.initState();
+    displayPending();
   }
 
   @override
@@ -72,93 +76,11 @@ class _OrdersPendingState extends State<OrdersPending> {
               color: Colors.grey[200],
             ),
             Column(
-              children: [
-                // toDisplay()
-                inPending()
-              ],
+              children: [inPending()],
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget toDisplay() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(30),
-          child: Row(
-            children: [
-              //ni box add member
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const intro()),
-                  );
-                },
-                child: Container(
-                  width: 160,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'lib/assets/Add Member.png',
-                        height: 30,
-                        width: 30,
-                      ),
-                      SizedBox(width: 10),
-                      Text(
-                        'New',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(width: 10),
-              Row(
-                children: [
-                  //ni box member
-                  GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      width: 160,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'lib/assets/Member.png',
-                            height: 23,
-                            width: 30,
-                          ),
-                          SizedBox(width: 10),
-                          Text(
-                            'Member',
-                            style: TextStyle(fontSize: 16, color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        displayPending()
-      ],
     );
   }
 
@@ -183,8 +105,13 @@ class _OrdersPendingState extends State<OrdersPending> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const intro()),
+                                  builder: (context) => const AddMember()),
                             );
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //       builder: (context) => const intro()),
+                            // );
                           },
                           child: Container(
                             height: 35,
@@ -214,12 +141,37 @@ class _OrdersPendingState extends State<OrdersPending> {
                       SizedBox(width: 10),
                       Expanded(
                         child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const AddMember()),
-                            );
+                          onTap: () async {
+                            var headers = {'token': token};
+                            var request = http.Request(
+                                'GET',
+                                Uri.parse(
+                                    'https://member.tunai.io/cashregister/member/walkin'));
+
+                            request.headers.addAll(headers);
+
+                            http.StreamedResponse response =
+                                await request.send();
+
+                            if (response.statusCode == 200) {
+                              final responsebody =
+                                  await response.stream.bytesToString();
+                              var body = json.decode(responsebody);
+                              Map<String, dynamic> _walkin = body;
+
+                              walkin = _walkin['members'];
+
+                              if (walkin != null && walkin.isNotEmpty) {
+                                for (var i = 0; i < walkin.length; i++) {
+                                  walkInMemberID = walkin[i]['memberID'];
+                                }
+                              }
+                            } else {
+                              print(response.reasonPhrase);
+                            }
+                            print(walkin);
+
+                            print(walkInMemberID);
                           },
                           child: Container(
                             height: 35,
@@ -590,4 +542,5 @@ class _OrdersPendingState extends State<OrdersPending> {
       return {};
     }
   }
+  
 }

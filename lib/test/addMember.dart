@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import '../api.dart';
 import '../main.dart';
+import '../ordersPending.dart';
 
 class AddMember extends StatefulWidget {
   const AddMember({super.key});
@@ -16,6 +17,8 @@ class AddMember extends StatefulWidget {
 }
 
 class _AddMemberState extends State<AddMember> {
+
+  List <dynamic> member = [];
   String _errorPhoneLength = '';
 
   final TextEditingController _dateController = TextEditingController();
@@ -331,7 +334,7 @@ class _AddMemberState extends State<AddMember> {
                                       padding: const EdgeInsets.only(
                                           top: 10, bottom: 13),
                                       child: Image.asset(
-                                        'lib/assets/Persons.png',
+                                        'lib/assets/Person.jpg',
                                         height: 5,
                                       ),
                                     ),
@@ -493,7 +496,51 @@ class _AddMemberState extends State<AddMember> {
 
       phoneText = _selectedCountryCode['code']! + _phoneController.text;
       dob = '';
+      
 
+      member = text['members'];
+
+      // var member = int(text['members']['memberID']);
+
+      print(member.first['memberID']);
+      createOrder();
+
+    } else {
+      print(response.reasonPhrase);
+    }
+  }
+
+   createOrder() async {
+    var headers = {
+      'token':token,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    };
+
+    var memberID = member.first['memberID'];
+
+    var request =
+        http.Request('POST', Uri.parse('https://order.tunai.io/loyalty/order'));
+    request.bodyFields = {'memberID': memberID.toString()};
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      setState(() {
+        showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(20))),
+                builder: (BuildContext context) {
+                  return SizedBox(height: 750, child: OrdersPending());
+                },
+              );
+      });
+
+      print("Done member");
+     
     } else {
       print(response.reasonPhrase);
     }

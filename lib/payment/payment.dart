@@ -544,21 +544,20 @@ class _PaymentReceiptState extends State<PaymentReceipt> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          showModalBottomSheet<void>(
-            context: context,
-            isScrollControlled: true,
-             shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-            builder: (BuildContext context) {
-              return SizedBox(
-                  height: 750,
-                  child: Cashier(
-                    
-                    cartOrderId: widget.cartOrderId,
-                    
-                  ));
-            },
-          );
+                          // showModalBottomSheet<void>(
+                          //   context: context,
+                          //   isScrollControlled: true,
+                          //   shape: const RoundedRectangleBorder(
+                          //       borderRadius: BorderRadius.vertical(
+                          //           top: Radius.circular(20))),
+                          //   builder: (BuildContext context) {
+                          //     return SizedBox(
+                          //         height: 750,
+                          //         child: Cashier(
+                          //           cartOrderId: widget.cartOrderId,
+                          //         ));
+                          //   },
+                          // );
                         },
                         child: Image.asset(
                           "lib/assets/Plus.png",

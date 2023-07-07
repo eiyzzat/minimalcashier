@@ -375,6 +375,11 @@ class _TrialEditItemState extends State<TrialEditItem> {
                                 itemCount: selectedStaffDetails.length,
                                 itemBuilder: (context, index) {
                                   final detail = selectedStaffDetails[index];
+                                  print("Detail: $detail");
+                                   dynamic theStaff= staff.firstWhere((theStaff) =>
+                                    theStaff['staffID'] == detail ['staffID']);
+                                    final displayStaffName = theStaff;
+                                    final theName = displayStaffName['name'];
                                   // var effortText = effortControllers[index];
                                   // var handsOnText =
                                   //     handsOnControllers[index];
@@ -392,7 +397,7 @@ class _TrialEditItemState extends State<TrialEditItem> {
                                             ),
                                             const SizedBox(width: 8),
                                             Text(
-                                              detail['staffID'].toString(),
+                                              theName.toString(),
                                               style:
                                                   const TextStyle(fontSize: 12),
                                             ),

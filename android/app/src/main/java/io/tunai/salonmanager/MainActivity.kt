@@ -1,4 +1,6 @@
 package io.tunai.salonmanager
 
-class MainActivity {
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity: FlutterActivity() {
 }

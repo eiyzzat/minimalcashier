@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:minimal/payment/paymentPage.dart';
 import 'package:minimal/pending.dart';
 import 'package:minimal/test/trialEditItem.dart';
 import 'package:minimal/test/trialPayment.dart';
@@ -86,7 +85,7 @@ class _TrialCart extends State<TrialCart> {
         totalDiscount = widget.otems.fold(
             0, (sum, otems) => sum + int.parse(otems['discount'].toString()));
       });
-      print("Total Disc dalam update: $totalDiscount");
+      // print("Total Disc dalam update: $totalDiscount");
     }
 
     // var disc = updateDiscount();
@@ -105,11 +104,11 @@ class _TrialCart extends State<TrialCart> {
 
     double allTotal = totalSubtotal - allDiscount;
 
-    print("Dalam otems dr menu: ${widget.otems}");
-    print("total quantity: $nakDisplayQuantity");
-    print("total Discount: $totalDiscount");
-    print("total semua: $totalSubtotal");
-    print("total bayar: $allTotal");
+    // print("Dalam otems dr menu: ${widget.otems}");
+    // print("total quantity: $nakDisplayQuantity");
+    // print("total Discount: $totalDiscount");
+    // print("total semua: $totalSubtotal");
+    // print("total bayar: $allTotal");
 
     // print(widget.totalItems);
     print(widget.totalPrice);
@@ -162,33 +161,54 @@ class _TrialCart extends State<TrialCart> {
                           future: fetchData(),
                           builder: (context, snapshot) {
                             if (!snapshot.hasData) {
-                              print("abd");
+                              // print("abd");
                               return const Center(
                                 child: CircularProgressIndicator(),
                               );
                             } else {
                               typeIDMap.clear();
 
-                              for (int i = 0; i < skus.length; i++) {
-                                final item2 = skus[i];
+                              // print(skus);
+                              // print(widget.otems);
+
+                              for (int i = 0; i < widget.otems.length; i++) {
+                                dynamic sku = skus.firstWhere((sku) =>
+                                    sku['skuID'] == widget.otems[i]['skuID']);
+                                final item2 = sku;
                                 final typeID = item2['typeID'].toString();
+
+                                // List<Map<String, dynamic>> otems =
+                                //     List<Map<String, dynamic>>.from(
+                                //         widget.otems);
+
+                                // if (typeIDMap.containsKey(typeID)) {
+                                //   typeIDMap[typeID]!.addAll(otems);
+                                // } else {
+                                //   typeIDMap[typeID] = otems;
+                                // }
 
                                 if (!typeIDMap.containsKey(typeID)) {
                                   typeIDMap[typeID] = [];
                                 }
-                                typeIDMap[typeID]!.add({
-                                  'itemName': item2['name'].toString(),
-                                  'otemID': widget.otems[i]['otemID'],
-                                  'skuID': skus[i]['skuID'],
-                                  'quantity':
-                                      widget.otems[i]['quantity'].toString(),
-                                  'discount': widget.otems[i]['discount'],
-                                  'price': widget.otems[i]['price'],
-                                  'remarks':
-                                      widget.otems[i]['remarks'].toString(),
-                                });
 
-                                print(typeIDMap);
+                                if (widget.otems[i]['deleteDate'] == 0) {
+                                  typeIDMap[typeID]!.add({
+                                    'itemName': item2['name'].toString(),
+                                    'otemID': widget.otems[i]['otemID'],
+                                    'skuID': item2['skuID'],
+                                    'quantity':
+                                        widget.otems[i]['quantity'].toString(),
+                                    'discount': widget.otems[i]['discount'],
+                                    'price': widget.otems[i]['price'],
+                                    'remarks':
+                                        widget.otems[i]['remarks'].toString(),
+                                    'deleteDate':
+                                        widget.otems[i]['deleteDate'].toString()
+                                  });
+                                }
+                                // print("TypeIDMAp:");
+
+                                // print(typeIDMap);
                               }
 
                               return ListView.builder(
@@ -199,6 +219,10 @@ class _TrialCart extends State<TrialCart> {
                                   final typeID = typeIDMap.keys.toList()[index];
                                   final typeName = getTypeName(typeID);
                                   final itemList = typeIDMap[typeID]!;
+
+                                  // print("itemList:");
+
+                                  // print(itemList);
 
                                   if (itemList.isEmpty) {
                                     return Container();
@@ -243,14 +267,13 @@ class _TrialCart extends State<TrialCart> {
                                             if (staffCount == 1) {
                                               var staffID = widget.otems[i]
                                                   ['staffs'][0]['staffID'];
-                                              var staffInfo = widget.otems[i]
-                                                      ['staffs']
+                                              var staffInfo = staff
                                                   .firstWhere(
-                                                (staff) =>
-                                                    staff['staffID'] == staffID,
+                                                (staffInfo) =>
+                                                    staffInfo['staffID'] == staffID,
                                                 orElse: () => {},
                                               );
-                                              staffName = staffInfo['staffID']
+                                              staffName = staffInfo['name']
                                                   .toString();
                                             } else if (staffCount > 1) {
                                               staffName = '$staffCount staffs';
@@ -271,15 +294,10 @@ class _TrialCart extends State<TrialCart> {
                                                 child: const Icon(Icons.delete,
                                                     color: Colors.white),
                                               ),
-                                              onDismissed: (direction) {
-                                                deleteItem(otemID);
-                                                
-                                                // setState(() {
-                                                //   widget.otems.removeWhere(
-                                                //       (item) =>
-                                                //           item['otemID'] ==
-                                                //           otemID);
-                                                // });
+                                              onDismissed: (direction) async {
+                                                await deleteItem(otemID);
+                                                fetchData();
+                                                print(otemID);
                                               },
                                               child: InkWell(
                                                 onTap: () async {
@@ -298,8 +316,8 @@ class _TrialCart extends State<TrialCart> {
                                                       return SizedBox(
                                                         height: 750,
                                                         child: TrialEditItem(
-                                                          cartOrderId:
-                                                              widget.cartOrderId,
+                                                          cartOrderId: widget
+                                                              .cartOrderId,
                                                           otemOtemID:
                                                               itemData['otemID']
                                                                   .toString(),
@@ -319,7 +337,7 @@ class _TrialCart extends State<TrialCart> {
                                                       );
                                                     },
                                                   );
-                                          
+
                                                   if (updatedItemData != null) {
                                                     final index = widget.otems
                                                         .indexWhere((item) =>
@@ -340,29 +358,32 @@ class _TrialCart extends State<TrialCart> {
                                                   elevation: 0,
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius:
-                                                        BorderRadius.circular(8),
+                                                        BorderRadius.circular(
+                                                            8),
                                                   ),
                                                   child: Column(
                                                     crossAxisAlignment:
-                                                        CrossAxisAlignment.start,
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
                                                       Padding(
                                                         padding:
-                                                            const EdgeInsets.all(
-                                                                8.0),
+                                                            const EdgeInsets
+                                                                .all(8.0),
                                                         child: Row(
                                                           mainAxisAlignment:
                                                               MainAxisAlignment
                                                                   .spaceBetween,
                                                           children: [
                                                             Text(
-                                                              itemData['itemName']
+                                                              itemData[
+                                                                      'itemName']
                                                                   .toString(),
                                                               style:
                                                                   const TextStyle(
                                                                 fontSize: 16,
-                                                                color:
-                                                                    Colors.black,
+                                                                color: Colors
+                                                                    .black,
                                                               ),
                                                             ),
                                                             const SizedBox(
@@ -378,7 +399,8 @@ class _TrialCart extends State<TrialCart> {
                                                                       .toString(),
                                                                   style:
                                                                       const TextStyle(
-                                                                    fontSize: 16,
+                                                                    fontSize:
+                                                                        16,
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .bold,
@@ -393,7 +415,8 @@ class _TrialCart extends State<TrialCart> {
                                                       ),
                                                       Padding(
                                                         padding:
-                                                            const EdgeInsets.only(
+                                                            const EdgeInsets
+                                                                    .only(
                                                                 left: 8.0),
                                                         child: Column(
                                                           crossAxisAlignment:
@@ -411,9 +434,8 @@ class _TrialCart extends State<TrialCart> {
                                                                             .grey[
                                                                         200],
                                                                     borderRadius:
-                                                                        BorderRadius
-                                                                            .circular(
-                                                                                5.0),
+                                                                        BorderRadius.circular(
+                                                                            5.0),
                                                                   ),
                                                                   child: staffCounts[
                                                                               index] >
@@ -422,22 +444,15 @@ class _TrialCart extends State<TrialCart> {
                                                                           mainAxisAlignment:
                                                                               MainAxisAlignment.center,
                                                                           children: [
-                                                                            Image
-                                                                                .asset(
+                                                                            Image.asset(
                                                                               'lib/assets/Staff.png',
-                                                                              height:
-                                                                                  25,
-                                                                              width:
-                                                                                  30,
+                                                                              height: 25,
+                                                                              width: 30,
                                                                             ),
-                                                                            const SizedBox(
-                                                                                width: 10),
+                                                                            const SizedBox(width: 10),
                                                                             Text(
-                                                                              staffCounts[index] == 0
-                                                                                  ? 'Staffs'
-                                                                                  : staffNames[index],
-                                                                              style:
-                                                                                  const TextStyle(
+                                                                              staffCounts[index] == 0 ? 'Staffs' : staffNames[index],
+                                                                              style: const TextStyle(
                                                                                 fontSize: 16,
                                                                                 color: Colors.black,
                                                                               ),
@@ -453,7 +468,7 @@ class _TrialCart extends State<TrialCart> {
                                                                               30,
                                                                         ),
                                                                 ),
-                                          
+
                                                                 const SizedBox(
                                                                     width: 10),
                                                                 Visibility(
@@ -496,13 +511,12 @@ class _TrialCart extends State<TrialCart> {
                                                                     ),
                                                                   ),
                                                                 ),
-                                                                Spacer(), // Added Spacer widget
+                                                                const Spacer(), // Added Spacer widget
                                                                 Padding(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                              .only(
-                                                                          right:
-                                                                              8.0),
+                                                                  padding: const EdgeInsets
+                                                                          .only(
+                                                                      right:
+                                                                          8.0),
                                                                   child: Text(
                                                                     itemData[
                                                                             'price']
@@ -547,16 +561,16 @@ class _TrialCart extends State<TrialCart> {
                                                                       padding:
                                                                           const EdgeInsets.all(
                                                                               8.0),
-                                                                      child: Text(
+                                                                      child:
+                                                                          Text(
                                                                         '* ' +
-                                                                            itemData['remarks']
-                                                                                .toString(),
+                                                                            itemData['remarks'].toString(),
                                                                         style:
                                                                             const TextStyle(
                                                                           fontSize:
                                                                               16,
-                                                                          color: Colors
-                                                                              .black,
+                                                                          color:
+                                                                              Colors.black,
                                                                         ),
                                                                       ),
                                                                     ),
@@ -836,10 +850,10 @@ class _TrialCart extends State<TrialCart> {
                       height: 44,
                       child: ElevatedButton(
                         onPressed: () {
-                          print(calcDisc(widget.otems));
+                          // print(calcDisc(widget.otems));
                           print("what's in otem: ${widget.otems}");
 
-                          print(newTotalItem);
+                          // print(newTotalItem);
                           showModalBottomSheet<void>(
                             context: context,
                             isScrollControlled: true,
@@ -907,12 +921,10 @@ class _TrialCart extends State<TrialCart> {
             body['otems'].where((item) => item['deleteDate'] == 0).toList();
         skus = body['skus'];
         staff = body['staffs'];
-
-        //}
-        // );
+        // });
       }
 
-      print("otems fetchDAta: ${widget.otems}");
+      print("otems fetchData: ${widget.otems}");
 
       return widget.otems;
     } else {
@@ -921,12 +933,12 @@ class _TrialCart extends State<TrialCart> {
   }
 
   Future deleteItem(String otemID) async {
-    int otemInt = int.parse(otemID);
+    // int otemInt = int.parse(otemID);
     var headers = {'token': '$token'};
     var request = http.Request(
         'POST',
         Uri.parse(
-            'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemInt/delete'));
+            'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/delete'));
 
     request.headers.addAll(headers);
 
@@ -934,6 +946,7 @@ class _TrialCart extends State<TrialCart> {
 
     if (response.statusCode == 200) {
       print(await response.stream.bytesToString());
+      print(widget.cartOrderId);
       print("done");
     } else {
       print(response.reasonPhrase);

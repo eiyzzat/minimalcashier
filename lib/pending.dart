@@ -371,7 +371,7 @@ class _EditItemState extends State<EditItem> {
                                 const Divider(),
                                 ListView.builder(
                                   shrinkWrap: true,
-                                   physics: const ScrollPhysics(),
+                                  physics: const ScrollPhysics(),
                                   itemCount: selectedStaffDetails.length,
                                   itemBuilder: (context, index) {
                                     final detail = selectedStaffDetails[index];
@@ -926,7 +926,7 @@ class _EditItemState extends State<EditItem> {
                             onPressed: () {
                               int newquantity =
                                   int.parse(widget.itemData['quantity']);
-                                  
+
                               changeQty(
                                   widget.otemOtemID.toString(), newquantity);
                               String remarks = remarksController.text;
@@ -1377,12 +1377,16 @@ class _StaffInEditItemState extends State<StaffInEditItem> {
 //showModalBottom for staff button in cart
 
 class StaffPart extends StatefulWidget {
-  const StaffPart({Key? key, required this.cartOrderId, required this.otems,required this.skus});
+  const StaffPart(
+      {Key? key,
+      required this.cartOrderId,
+      required this.otems,
+      required this.skus});
 
   final String cartOrderId;
 
   final List<dynamic> otems;
-   final List<dynamic> skus;
+  final List<dynamic> skus;
 
   @override
   State<StaffPart> createState() => _StaffPartState();
@@ -1643,7 +1647,8 @@ class _StaffPartState extends State<StaffPart> {
                       staffDetails:
                           selectedDetails.isNotEmpty ? selectedDetails : null,
                       otems: widget.otems,
-                      cartOrderId: widget.cartOrderId, skus: widget.skus,
+                      cartOrderId: widget.cartOrderId,
+                      skus: widget.skus,
                     ),
                   );
                 },
@@ -2060,7 +2065,8 @@ class _SpecificStaffState extends State<SpecificStaff> {
                                 height: 750,
                                 child: SelectItem(
                                   otems: widget.otems,
-                                  onSkusSelected: handleSkusSelected, skus: widget.skus,
+                                  onSkusSelected: handleSkusSelected,
+                                  skus: widget.skus,
                                 ),
                               );
                             },
@@ -2195,7 +2201,6 @@ class _SpecificStaffState extends State<SpecificStaff> {
     var headers = {'token': token, 'Content-Type': 'application/json'};
 
     for (var i = 0; i < otemIDs.length; i++) {
-      
       // Check if the widget is still mounted before proceeding
       // if (!mounted) {
       //   return;
@@ -2222,7 +2227,9 @@ class _SpecificStaffState extends State<SpecificStaff> {
       if (response.statusCode == 200) {
         print(otemIDs);
         print(await response.stream.bytesToString());
-        Navigator.pop(context);
+        if (mounted) {
+          Navigator.pop(context);
+        }
       } else {
         print(response.reasonPhrase);
         print("GoodLuck");
@@ -2251,7 +2258,6 @@ class _SpecificStaffState extends State<SpecificStaff> {
 // }
 
 // class _DiscountState extends State<Discount> {
- 
 
 //   bool isCustomTapped = false;
 //   bool okTapped = false;
@@ -2465,7 +2471,7 @@ class _SpecificStaffState extends State<SpecificStaff> {
 //                               height: 750,
 //                               child: SelectItemForDiscount(
 //                                 otems: widget.otems,
-//                                 onSkusSelected: handleSkusSelected, skus: widget.skus, 
+//                                 onSkusSelected: handleSkusSelected, skus: widget.skus,
 //                               ),
 //                             );
 //                           },
@@ -2635,7 +2641,6 @@ class SelectItemForDiscount extends StatefulWidget {
     Key? key,
     required this.otems,
     required this.skus,
-  
     required this.onSkusSelected,
   });
   final List<dynamic> otems;
@@ -2715,7 +2720,6 @@ class _SelectItemForDiscountState extends State<SelectItemForDiscount> {
   }
 
   Widget hi() {
-    
     return Column(
       children: [
         Padding(
@@ -2729,7 +2733,7 @@ class _SelectItemForDiscountState extends State<SelectItemForDiscount> {
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
             ),
-            itemCount:widget.skus.length,
+            itemCount: widget.skus.length,
             itemBuilder: (context, index) {
               final sku = widget.skus[index];
               final isSelected = selectedItems.contains(index);
@@ -2946,21 +2950,22 @@ class _SelectItemState extends State<SelectItem> {
     );
   }
 
- void selectAllItems() {
-  setState(() {
-    if (isAllItemsSelected) {
-      selectedItems = {};
-      selectedSkus = {};
-    } else {
-      selectedItems = Set<int>.from(List.generate(skus.length, (index) => index));
-      selectedSkus = Map.fromIterables(
-        selectedItems.map((index) => index.toString()),
-        skus.map((sku) => sku['skuID'].toString()),
-      );
-    }
-    isAllItemsSelected = !isAllItemsSelected;
-  });
-}
+  void selectAllItems() {
+    setState(() {
+      if (isAllItemsSelected) {
+        selectedItems = {};
+        selectedSkus = {};
+      } else {
+        selectedItems =
+            Set<int>.from(List.generate(skus.length, (index) => index));
+        selectedSkus = Map.fromIterables(
+          selectedItems.map((index) => index.toString()),
+          skus.map((sku) => sku['skuID'].toString()),
+        );
+      }
+      isAllItemsSelected = !isAllItemsSelected;
+    });
+  }
 
   Widget hi() {
     print("dalam select item: ${widget.skus}");
@@ -2969,7 +2974,6 @@ class _SelectItemState extends State<SelectItem> {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: GridView.builder(
-            
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -2979,11 +2983,10 @@ class _SelectItemState extends State<SelectItem> {
               mainAxisSpacing: 10,
             ),
             itemCount: widget.skus.length,
-            
             itemBuilder: (context, index) {
               final sku = widget.skus[index];
-               final isSelected = isAllItemsSelected || selectedItems.contains(index);
-              
+              final isSelected =
+                  isAllItemsSelected || selectedItems.contains(index);
 
               return GestureDetector(
                 onTap: () {

@@ -358,7 +358,10 @@ class _DiscountState extends State<Discount> {
   ) async {
     for (var entry in discItemMap.entries) {
       String otemID = entry.key;
+      print(otemID);
+      
       var orderID = entry.value['orderID'];
+      print(orderID);
 
       // Find the index of the corresponding otem in the otems list
       int index = widget.otems.indexWhere(
@@ -384,7 +387,7 @@ class _DiscountState extends State<Discount> {
       var request = http.Request(
           'POST',
           Uri.parse(
-              'https://order.tunai.io/loyalty/order/${widget.orderId}/otems/${otemIDs[i]}/discount'));
+              'https://order.tunai.io/loyalty/order/${orderID[i]}/otems/${otemIDs[i]}/discount'));
 
       request.bodyFields = {'discount': discount};
       request.headers.addAll(headers);

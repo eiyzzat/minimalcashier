@@ -27,6 +27,8 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
   bool _isClicked = false;
   TextEditingController remarks = TextEditingController();
 
+  Map<String, dynamic>? inCashier;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,8 +142,9 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
                                         fontSize: 14, color: Colors.grey),
                                   ),
                                   GestureDetector(
-                                    onTap: () {
-                                      showModalBottomSheet<void>(
+                                    onTap: () async {
+                                      inCashier = await showModalBottomSheet<
+                                          Map<String, dynamic>>(
                                         context: context,
                                         isScrollControlled: true,
                                         shape: const RoundedRectangleBorder(
@@ -152,9 +155,36 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
                                               height: 750,
                                               child: Cashier(
                                                 cartOrderId: widget.cartOrderId,
+                                                inCashier: inCashier,
                                               ));
                                         },
                                       );
+
+                                      if (inCashier != null) {
+                                        // Process the returned data here
+                                        print('Incashier: $inCashier');
+                                        // Use the following code to display the cashier name
+                                        Text(
+                                          inCashier!['selectedStaff'][0]
+                                              ['name'],
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black,
+                                          ),
+                                        );
+                                      } else {
+                                        // Display the text "No cashier selected"
+                                        Text(
+                                          "No cashier selected",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black,
+                                          ),
+                                        );
+                                      }
+                                      setState(() {
+                                        // Update the value of inCashier
+                                      });
                                     },
                                     child: Image.asset(
                                       "lib/assets/Plus.png",
@@ -175,12 +205,22 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
                                       Expanded(
                                         child: SizedBox(
                                           height: 29,
-                                          child: Text(
-                                            "No cashier selected",
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black),
-                                          ),
+                                          child: inCashier != null
+                                              ? Text(
+                                                  inCashier!['selectedStaff'][0]
+                                                      ['name'],
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black,
+                                                  ),
+                                                )
+                                              : Text(
+                                                  "No cashier selected",
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
                                         ),
                                       ),
                                     ],
@@ -191,6 +231,7 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
                           ],
                         ),
                       ),
+
                       //order remarks
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
@@ -262,6 +303,7 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
               print('Check dekat receipt: $storeServiceAndProduct');
 
               completeOrder(sub);
+              // complete(sub);
             },
             child: const Text(
               'Done',
@@ -297,10 +339,9 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
     ];
 
     var items = widget.otems.map((item) {
-      
       return {
         "skuID": item['skuID'],
-        "priceAmt": item['price'],
+        "priceAmt": item['price'] - item['discount'],
       };
     }).toList();
 
