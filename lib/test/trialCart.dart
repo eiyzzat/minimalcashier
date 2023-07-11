@@ -136,7 +136,10 @@ class _TrialCart extends State<TrialCart> {
                 size: 40,
                 color: Colors.red,
               ),
-              onPressed: () {},
+              onPressed: () {
+                deleteAll(widget.otems);
+                setState(() {});
+              },
             ),
             IconButton(
                 icon: Image.asset("lib/assets/Pending.png"), onPressed: () {})
@@ -248,6 +251,7 @@ class _TrialCart extends State<TrialCart> {
                                         physics: const ScrollPhysics(),
                                         itemCount: itemList.length,
                                         itemBuilder: (context, index) {
+                                          print("itemlist $itemList");
                                           final itemData = itemList[index];
                                           var otemID =
                                               itemData['otemID'].toString();
@@ -256,25 +260,38 @@ class _TrialCart extends State<TrialCart> {
                                           List<int> staffCounts = [];
                                           List<String> staffNames = [];
 
+                                          // for (var otem in widget.otems) {
+                                          //   var staffCount =
+                                          //       otem["staffs"].length;
+                                          //   print(
+                                          //       "otemID: ${otem['otemID']}, Staff Count: $staffCount");
+                                          // }
+
                                           // Iterate over each otems item
                                           for (var i = 0;
                                               i < widget.otems.length;
                                               i++) {
+                                            var otemID =
+                                                widget.otems[i]['otemID'];
                                             var staffCount = widget
                                                 .otems[i]['staffs'].length;
                                             var staffName = '';
 
+                                            print("staff");
+
+                                            print(widget.otems[i]['staffs']);
+
                                             if (staffCount == 1) {
                                               var staffID = widget.otems[i]
                                                   ['staffs'][0]['staffID'];
-                                              var staffInfo = staff
-                                                  .firstWhere(
+                                              var staffInfo = staff.firstWhere(
                                                 (staffInfo) =>
-                                                    staffInfo['staffID'] == staffID,
+                                                    staffInfo['staffID'] ==
+                                                    staffID,
                                                 orElse: () => {},
                                               );
-                                              staffName = staffInfo['name']
-                                                  .toString();
+                                              staffName =
+                                                  staffInfo['name'].toString();
                                             } else if (staffCount > 1) {
                                               staffName = '$staffCount staffs';
                                             }
@@ -437,6 +454,7 @@ class _TrialCart extends State<TrialCart> {
                                                                         BorderRadius.circular(
                                                                             5.0),
                                                                   ),
+                                                                  /////////displaystaffcount
                                                                   child: staffCounts[
                                                                               index] >
                                                                           0
@@ -474,7 +492,7 @@ class _TrialCart extends State<TrialCart> {
                                                                 Visibility(
                                                                   visible: itemData[
                                                                           'discount'] !=
-                                                                      0, // Check if discount is not zero
+                                                                      0,
                                                                   child:
                                                                       Container(
                                                                     width: 80,
@@ -950,6 +968,32 @@ class _TrialCart extends State<TrialCart> {
       print("done");
     } else {
       print(response.reasonPhrase);
+    }
+  }
+
+  Future deleteAll(List<dynamic> otems) async {
+    for (int i = 0; i < otems.length; i++) {
+      var otemID = otems[i]['otemID'];
+
+      print(otemID);
+
+      var headers = {'token': '$token'};
+      var request = http.Request(
+          'POST',
+          Uri.parse(
+              'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/delete'));
+
+      request.headers.addAll(headers);
+
+      http.StreamedResponse response = await request.send();
+
+      if (response.statusCode == 200) {
+        print(await response.stream.bytesToString());
+        print(widget.cartOrderId);
+        print("done");
+      } else {
+        print(response.reasonPhrase);
+      }
     }
   }
 

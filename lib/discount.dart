@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:minimal/pending.dart';
+import 'package:minimal/test/discountItem.dart';
 import 'package:minimal/testingSelectStaff.dart';
 import '../api.dart';
 import '../cart.dart';
@@ -9,7 +10,7 @@ import '../function.dart';
 import 'discount.dart';
 
 class Discount extends StatefulWidget {
-  const Discount(
+  Discount(
       {Key? key,
       required this.orderId,
       required this.otems,
@@ -17,7 +18,7 @@ class Discount extends StatefulWidget {
       required this.updateDiscount});
 
   final String orderId;
-  final List<dynamic> otems;
+  List<dynamic> otems;
   final List<dynamic> skus;
   final Function updateDiscount;
 
@@ -26,8 +27,6 @@ class Discount extends StatefulWidget {
 }
 
 class _DiscountState extends State<Discount> {
- 
-
   bool isCustomTapped = false;
   bool okTapped = false;
   bool showRefresh = false;
@@ -111,7 +110,8 @@ class _DiscountState extends State<Discount> {
                           children: [
                             Text(
                               "Discount",
-                              style: TextStyle(fontSize: 14, color: Colors.grey),
+                              style:
+                                  TextStyle(fontSize: 14, color: Colors.grey),
                             ),
                           ],
                         ),
@@ -238,9 +238,10 @@ class _DiscountState extends State<Discount> {
                           builder: (BuildContext context) {
                             return SizedBox(
                               height: 750,
-                              child: SelectItemForDiscount(
+                              child: TrialSelectItemForDiscount(
                                 otems: widget.otems,
-                                onSkusSelected: handleSkusSelected, skus: widget.skus, 
+                                onSkusSelected: handleSkusSelected,
+                                skus: widget.skus,
                               ),
                             );
                           },
@@ -327,15 +328,15 @@ class _DiscountState extends State<Discount> {
           bottom: 25.0,
         ),
         child: ElevatedButton(
-          onPressed: () {
-            setState(() {
-              // Navigator.pop(context);
-              matchingValue();
-              print("disc text: ${discController.text}");
-              String thediscount = discController.text;
-              changeDiscount(discItemMap, thediscount);
-              popWithData(discItemMap, thediscount, selectedSkus);
-            });
+          onPressed: () async {
+            matchingValue();
+            print("disc text: ${discController.text}");
+            String thediscount = discController.text;
+            print(selectedSkus);
+            await trialchangeDiscount(selectedSkus, thediscount);
+            Navigator.pop(context);
+            setState(() {});
+            
           },
           child: Text('Apply'),
         ),
@@ -352,31 +353,17 @@ class _DiscountState extends State<Discount> {
     });
   }
 
-  Future<void> changeDiscount(
-    Map<String, Map<String, String>> discItemMap,
+  Future<void> trialchangeDiscount(
+    Map<String, String> selectedSkus,
     String discount,
   ) async {
-    for (var entry in discItemMap.entries) {
-      String otemID = entry.key;
-      print(otemID);
-      
-      var orderID = entry.value['orderID'];
-      print(orderID);
+    List<String> itemIDs = selectedSkus.values.map((value) {
+      return value.split(':').last;
+    }).toList();
 
-      // Find the index of the corresponding otem in the otems list
-      int index = widget.otems.indexWhere(
-          (item) => item['otemID'] == otemID && item['orderID'] == orderID);
-      if (index != -1) {
-        // Set the new discount for the otem
-        widget.otems[index]['discount'] = discount;
-      }
-    }
+    print("itemIDs: $itemIDs");
 
-    // Call your existing API code to update the discounts
-    var orderID = discItemMap.values.map((map) => map['orderID']).toList();
-    var otemIDs = discItemMap.values.map((map) => map['otemID']).toList();
-
-    for (var i = 0; i < otemIDs.length; i++) {
+    for (var i = 0; i < itemIDs.length; i++) {
       // Check if the widget is still mounted before proceeding
       if (!mounted) {
         return;
@@ -387,7 +374,7 @@ class _DiscountState extends State<Discount> {
       var request = http.Request(
           'POST',
           Uri.parse(
-              'https://order.tunai.io/loyalty/order/${orderID[i]}/otems/${otemIDs[i]}/discount'));
+              'https://order.tunai.io/loyalty/order/${widget.orderId}/otems/${itemIDs[i]}/discount'));
 
       request.bodyFields = {'discount': discount};
       request.headers.addAll(headers);
