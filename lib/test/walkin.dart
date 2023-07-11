@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:minimal/test/trialMenu.dart';
 
 import '../api.dart';
 import 'addMember.dart';
-
 
 class Izzaty extends StatefulWidget {
   const Izzaty({super.key});
@@ -15,6 +15,8 @@ class Izzaty extends StatefulWidget {
 
 class _IzzatyState extends State<Izzaty> {
   List<dynamic> walkin = [];
+  String memberName = "Walk-In";
+  String mobile = "0000000000";
 
   int walkInMemberID = 0;
 
@@ -104,7 +106,7 @@ class _IzzatyState extends State<Izzaty> {
                                   child: Text('Member'),
                                 ),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 width: 10,
                               ),
                               GestureDetector(
@@ -146,7 +148,7 @@ class _IzzatyState extends State<Izzaty> {
                               ),
                             ],
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 100,
                           ),
                         ],
@@ -154,5 +156,33 @@ class _IzzatyState extends State<Izzaty> {
                     ),
                   );
                 }))));
+  }
+
+  Future createOrder() async {
+    var headers = {
+      'token': token,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    };
+
+    var request =
+        http.Request('POST', Uri.parse('https://order.tunai.io/loyalty/order'));
+    request.bodyFields = {'memberID': '21887957'};
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>  trialMenuPage(
+                  memberMobile: mobile,
+                  memberName: memberName,
+                  orderId: '',
+                )),
+      );
+    } else {
+      print(response.reasonPhrase);
+    }
   }
 }

@@ -335,7 +335,9 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/complete');
 
     var collections = [
-      {"paymentTypeID": 1, "amount": sub.toStringAsFixed(2)},
+      {
+        "paymentTypeID": 1, 
+        "amount": sub.toStringAsFixed(2)},
     ];
 
     var items = widget.otems.map((item) {

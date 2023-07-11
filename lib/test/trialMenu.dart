@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:minimal/test/trialCart.dart';
-import 'package:minimal/updatedCart.dart';
 import 'dart:convert';
 
 import '../allProducts.dart';
@@ -106,16 +105,13 @@ class _trialMenuPage extends State<trialMenuPage> {
           existingSkus.add(skuID);
         }
       }
-      //print('Dalam store: $storeServiceAndProduct');
+      
     }
-    // print('combine');
-    // print(combinedTotalItems);
-    // Move the Navigator.push code here
+    
     setState(() {
       storeServiceAndProduct = {};
     });
-    // print("setstate");
-    // print(storeServiceAndProduct);
+    
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -140,8 +136,20 @@ class _trialMenuPage extends State<trialMenuPage> {
           'Menu',
           style: TextStyle(color: Colors.black),
         ),
-        leading: xIcon(),
-        actions: [pendingIcon()],
+        leading: IconButton(
+      icon: Image.asset(
+        "lib/assets/Artboard 40.png",
+        height: 30,
+        width: 20,
+      ),
+      onPressed: () => Navigator.pop(context),
+      iconSize: 24,
+    ),
+        actions: [IconButton(
+        icon: Image.asset("lib/assets/Pending.png"),
+        onPressed: () {
+          // Implement onPressed action
+        })],
       ),
       body: Stack(
         children: [
@@ -154,31 +162,11 @@ class _trialMenuPage extends State<trialMenuPage> {
               folder(),
             ],
           ),
-          // bottomContainer()
+          
           bottomContainertest()
         ],
       ),
     );
-  }
-
-  Widget xIcon() {
-    return IconButton(
-      icon: Image.asset(
-        "lib/assets/Artboard 40.png",
-        height: 30,
-        width: 20,
-      ),
-      onPressed: () => Navigator.pop(context),
-      iconSize: 24,
-    );
-  }
-
-  Widget pendingIcon() {
-    return IconButton(
-        icon: Image.asset("lib/assets/Pending.png"),
-        onPressed: () {
-          // Implement onPressed action
-        });
   }
 
   Widget containerOrder() {

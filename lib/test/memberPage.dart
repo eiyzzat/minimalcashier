@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:minimal/test/trialMenu.dart';
 
 import '../api.dart';
 
@@ -27,6 +28,8 @@ class _CarMemberPageState extends State<CarMemberPage>
   int birthdayTot = 0;
   int outstandingTot = 0;
   bool isMenuVisible = false; // Track the visibility of the menu
+
+  List<dynamic> order = [];
 
   loadApi() async {
     await getInformation(); // akan pegi dkt getInformation dlk baru akan baca next line kat dibah
@@ -346,7 +349,26 @@ class _CarMemberPageState extends State<CarMemberPage>
     return Padding(
       padding: EdgeInsets.only(left: 10, right: 10, top: 10),
       child: InkWell(
-        onTap: () {},
+        onTap: () async {
+          var memberID = memberList[index]['memberID'];
+          final mobile = memberList[index]['mobile'];
+          final memberName = memberList[index]['name'];
+
+         await createOrder(memberID.toString());
+
+          var orderID = order[0]['orderID'].toString();
+
+        
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => trialMenuPage(
+                      memberMobile: mobile,
+                      memberName: memberName,
+                      orderId: orderID.toString(),
+                    )),
+          );
+        },
         child: Stack(children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -790,5 +812,41 @@ class _CarMemberPageState extends State<CarMemberPage>
     setState(() {
       queriedList = suggestion;
     });
+  }
+
+  Future createOrder(String memberID) async {
+    var headers = {
+      'token': token,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    };
+
+    var request =
+        http.Request('POST', Uri.parse('https://order.tunai.io/loyalty/order'));
+
+    
+    request.bodyFields = {'memberID': memberID};
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      final responsebody = await response.stream.bytesToString();
+      final body = json.decode(responsebody);
+
+      order = body['orders'];
+
+     
+
+      print("order: $order");
+    
+      // dynamic wOrder = walkinOrder.firstWhere(
+      //                           (wOrder) => "21887957" == wOrder['memberID']);
+      //                       final walkOrder = wOrder;
+      //                       final walkOrderId = walkOrder[0]['orderID'];
+
+     
+    } else {
+      print(response.reasonPhrase);
+    }
   }
 }

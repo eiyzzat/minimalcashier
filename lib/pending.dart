@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:minimal/test/staffItem.dart';
 import 'package:minimal/testingSelectStaff.dart';
 import '../api.dart';
 import '../cart.dart';
@@ -41,6 +42,7 @@ class EditItem extends StatefulWidget {
 
 class _EditItemState extends State<EditItem> {
   TextEditingController remarksController = TextEditingController();
+
   TextEditingController discController = TextEditingController();
   List<TextEditingController> effortControllers = [];
   List<TextEditingController> handsOnControllers = [];
@@ -1684,7 +1686,7 @@ class SpecificStaff extends StatefulWidget {
 
 class _SpecificStaffState extends State<SpecificStaff> {
   Map<String, Map<String, String>> otemOrderMap = {};
-  List<Map<String, dynamic>> updatedStaffDetails = [];
+  // List<Map<String, dynamic>> updatedStaffDetails = [];
   int? selectedItemCount;
   int? selectedStaffIndex;
   Map<String, String> selectedSkus = {};
@@ -1696,8 +1698,8 @@ class _SpecificStaffState extends State<SpecificStaff> {
   List<TextEditingController> effortControllers = [];
   List<TextEditingController> handsOnControllers = [];
 
-  TextEditingController effortText = TextEditingController();
-  TextEditingController handsOnText = TextEditingController();
+  // TextEditingController effortText = TextEditingController();
+  // TextEditingController handsOnText = TextEditingController();
 
   void handleSkusSelected(Map<String, String> skus) {
     setState(() {
@@ -1714,19 +1716,6 @@ class _SpecificStaffState extends State<SpecificStaff> {
       effortControllers.add(TextEditingController());
       handsOnControllers.add(TextEditingController());
     }
-  }
-
-  @override
-  void dispose() {
-    // Dispose the effort and hands-on controllers
-    for (var controller in effortControllers) {
-      controller.dispose();
-    }
-    for (var controller in handsOnControllers) {
-      controller.dispose();
-    }
-
-    super.dispose();
   }
 
   @override
@@ -1782,8 +1771,17 @@ class _SpecificStaffState extends State<SpecificStaff> {
               widget.staffDetails != null ? widget.staffDetails!.length : 0,
           itemBuilder: (context, index) {
             var staffDetail = widget.staffDetails![index];
-            var effortText = effortControllers[index];
-            var handsOnText = handsOnControllers[index];
+
+            TextEditingController effortTextController =
+                effortControllers[index];
+            TextEditingController handsOnTextController =
+                handsOnControllers[index];
+
+            effortControllers.add(effortTextController);
+            handsOnControllers.add(handsOnTextController);
+
+            // var effortText = effortControllers[index];
+            // var handsOnText = handsOnControllers[index];
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: Container(
@@ -1859,8 +1857,8 @@ class _SpecificStaffState extends State<SpecificStaff> {
                                 height: 57,
                                 decoration: BoxDecoration(
                                   color: Colors.grey[200],
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(8)),
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8)),
                                 ),
                                 child: Column(
                                   children: [
@@ -1868,7 +1866,7 @@ class _SpecificStaffState extends State<SpecificStaff> {
                                       padding: const EdgeInsets.all(8.0),
                                       child: Row(
                                         children: [
-                                          Text(
+                                          const Text(
                                             'Effort ',
                                             style: TextStyle(
                                               fontSize: 12,
@@ -1879,11 +1877,11 @@ class _SpecificStaffState extends State<SpecificStaff> {
                                           Container(
                                             width: 18,
                                             height: 18,
-                                            decoration: BoxDecoration(
+                                            decoration: const BoxDecoration(
                                               shape: BoxShape.circle,
                                               color: Colors.blue,
                                             ),
-                                            child: Icon(
+                                            child: const Icon(
                                               Icons.edit,
                                               color: Colors.white,
                                               size: 15,
@@ -1903,7 +1901,8 @@ class _SpecificStaffState extends State<SpecificStaff> {
                                                 // Handle tap on Effort text
                                               },
                                               child: TextFormField(
-                                                controller: effortText,
+                                                controller:
+                                                    effortTextController,
                                                 style: const TextStyle(
                                                   fontSize: 14,
                                                   color: Colors.black,
@@ -1946,8 +1945,8 @@ class _SpecificStaffState extends State<SpecificStaff> {
                                 height: 57,
                                 decoration: BoxDecoration(
                                   color: Colors.grey[200],
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(8)),
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8)),
                                 ),
                                 child: Column(
                                   children: [
@@ -1955,7 +1954,7 @@ class _SpecificStaffState extends State<SpecificStaff> {
                                       padding: const EdgeInsets.all(8.0),
                                       child: Row(
                                         children: [
-                                          Text(
+                                          const Text(
                                             'Hands on ',
                                             style: TextStyle(
                                               fontSize: 12,
@@ -1966,11 +1965,11 @@ class _SpecificStaffState extends State<SpecificStaff> {
                                           Container(
                                             width: 18,
                                             height: 18,
-                                            decoration: BoxDecoration(
+                                            decoration: const BoxDecoration(
                                               shape: BoxShape.circle,
                                               color: Colors.blue,
                                             ),
-                                            child: Icon(
+                                            child: const Icon(
                                               Icons.edit,
                                               color: Colors.white,
                                               size: 15,
@@ -1990,8 +1989,9 @@ class _SpecificStaffState extends State<SpecificStaff> {
                                                 // Handle tap on Hands on text
                                               },
                                               child: TextFormField(
-                                                controller: handsOnText,
-                                                style: TextStyle(
+                                                controller:
+                                                    handsOnTextController,
+                                                style: const TextStyle(
                                                   fontSize: 14,
                                                   color: Colors.black,
                                                   overflow:
@@ -2002,7 +2002,8 @@ class _SpecificStaffState extends State<SpecificStaff> {
                                                 onChanged: (value) {
                                                   // Handle changes in Hands on value
                                                 },
-                                                decoration: InputDecoration(
+                                                decoration:
+                                                    const InputDecoration(
                                                   isDense: true,
                                                   contentPadding:
                                                       EdgeInsets.zero,
@@ -2063,7 +2064,7 @@ class _SpecificStaffState extends State<SpecificStaff> {
                             builder: (BuildContext context) {
                               return SizedBox(
                                 height: 750,
-                                child: SelectItem(
+                                child: TrialSelectItem(
                                   otems: widget.otems,
                                   onSkusSelected: handleSkusSelected,
                                   skus: widget.skus,
@@ -2155,10 +2156,28 @@ class _SpecificStaffState extends State<SpecificStaff> {
         ),
         child: ElevatedButton(
           onPressed: () {
+            List<Map<String, dynamic>> updatedStaffDetails = [];
+            for (int i = 0; i < widget.staffDetails!.length; i++) {
+              var staffDetail = widget.staffDetails![i];
+              var effortText = effortControllers[i];
+              var handsOnText = handsOnControllers[i];
+              var updatedStaffDetail = {
+                'staffID': staffDetail['staffID'],
+                'name': staffDetail['name'],
+                'image': staffDetail['image'],
+                'effort': effortText.text,
+                'handson': handsOnText.text,
+              };
+              updatedStaffDetails.add(updatedStaffDetail);
+              print("testtttttt");
+              print(updatedStaffDetails);
+            }
             setState(() {
               matchingValue();
-              updateDetails();
-              otemsStaff(otemOrderMap, updatedStaffDetails);
+              //  updateDetails();
+              //  print("Updated Staff Details: $updatedStaffDetails");
+              // otemsStaff(otemOrderMap, updatedStaffDetails);
+              trialotemsStaff(selectedSkus, updatedStaffDetails);
             });
           },
           child: const Text('Apply'),
@@ -2167,27 +2186,27 @@ class _SpecificStaffState extends State<SpecificStaff> {
     );
   }
 
-  void updateDetails() {
-    // Create a new list to store the updated staff details
-    updatedStaffDetails = [];
+  // void updateDetails() {
+  //   // Create a new list to store the updated staff details
+  //   // updatedStaffDetails = [];
 
-    // Iterate over the existing staff details and update the effort and hands-on values
-    for (int i = 0; i < widget.staffDetails!.length; i++) {
-      var staffDetail = widget.staffDetails![i];
-      var effortText = effortControllers[i];
-      var handsOnText = handsOnControllers[i];
-      var updatedStaffDetail = {
-        'staffID': staffDetail['staffID'],
-        'name': staffDetail['name'],
-        'image': staffDetail['image'],
-        'effort': effortText.text,
-        'handson': handsOnText.text,
-      };
-      updatedStaffDetails.add(updatedStaffDetail);
-    }
-
-    print("Updated Staff Details: $updatedStaffDetails");
-  }
+  //   // Iterate over the existing staff details and update the effort and hands-on values
+  //   for (int i = 0; i < widget.staffDetails!.length; i++) {
+  //     var staffDetail = widget.staffDetails![i];
+  //     var effortText = effortControllers[i];
+  //     var handsOnText = handsOnControllers[i];
+  //     var updatedStaffDetail = {
+  //       'staffID': staffDetail['staffID'],
+  //       'name': staffDetail['name'],
+  //       'image': staffDetail['image'],
+  //       'effort': effortText.text,
+  //       'handson': handsOnText.text,
+  //     };
+  //     updatedStaffDetails.add(updatedStaffDetail);
+  //     print("testtttttt");
+  //     print(updatedStaffDetails);
+  //   }
+  // }
 
   Future<void> otemsStaff(Map<String, Map<String, String>> otemOrderMap,
       List<Map<String, dynamic>> updatedStaffDetails) async {
@@ -2226,6 +2245,52 @@ class _SpecificStaffState extends State<SpecificStaff> {
 
       if (response.statusCode == 200) {
         print(otemIDs);
+        print(await response.stream.bytesToString());
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } else {
+        print(response.reasonPhrase);
+        print("GoodLuck");
+      }
+    }
+  }
+
+  Future<void> trialotemsStaff(Map<String, String> selectedSkus,
+      List<Map<String, dynamic>> updatedStaffDetails) async {
+    List<String> itemIDs = selectedSkus.values.map((value) {
+      return value.split(':').last;
+    }).toList();
+
+    print("itemIDs: $itemIDs");
+
+    var headers = {'token': token, 'Content-Type': 'application/json'};
+
+    for (var i = 0; i < itemIDs.length; i++) {
+      // Check if the widget is still mounted before proceeding
+      // if (!mounted) {
+      //   return;
+      // }
+      var request = http.Request(
+        'POST',
+        Uri.parse(
+            'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/${itemIDs[i]}/servant/set'),
+      );
+
+      request.body = json.encode({
+        "staffs": updatedStaffDetails.map((staff) {
+          return {
+            "staffID": staff['staffID'],
+            "efforts": staff['effort'],
+            "handson": staff['handson'],
+          };
+        }).toList(),
+      });
+      request.headers.addAll(headers);
+
+      http.StreamedResponse response = await request.send();
+
+      if (response.statusCode == 200) {
         print(await response.stream.bytesToString());
         if (mounted) {
           Navigator.pop(context);

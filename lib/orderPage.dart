@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'api.dart';
 
 import 'ordersPending.dart';
@@ -17,6 +18,8 @@ class orderPage extends StatefulWidget {
 }
 
 class _orderPage extends State<orderPage> {
+  List<dynamic> orders = [];
+  List<dynamic> members = [];
   //untuk connection
   late ConnectivityResult result;
   late StreamSubscription subscription;
@@ -145,7 +148,7 @@ class _orderPage extends State<orderPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 20),
                   child: Text(
-                    'No member selected yet',
+                    orders[0]['memberID'],
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.blue,
@@ -209,6 +212,10 @@ class _orderPage extends State<orderPage> {
 //body
   @override
   Widget build(BuildContext context) {
+    //  dynamic sku = order.firstWhere((sku) =>
+    //                                 sku[0]['memberID'] == member[0]['memberID'].toString());
+    // final item = sku;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -234,7 +241,7 @@ class _orderPage extends State<orderPage> {
           IconButton(
             icon: Image.asset("lib/assets/Pending.png"),
             onPressed: () {
-              showModalBottomSheet<void>(
+              showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
                 shape: const RoundedRectangleBorder(
@@ -254,7 +261,152 @@ class _orderPage extends State<orderPage> {
             color: Colors.grey[200],
           ),
           Column(
-            children: [containerOrder()],
+            children: [
+              FutureBuilder(
+                future: fetchPendingAndMembers(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<Map<String, dynamic>> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text('Error: ${snapshot.error}'),
+                    );
+                  } else {
+                    Map<String, dynamic>? data = snapshot.data;
+                    if (data == null) {
+                      return Center(
+                        child: Text('No data available.'),
+                      );
+                    }
+
+                    orders = data['pending'] ?? [];
+                    members = data['members'] ?? [];
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const ScrollPhysics(),
+                      itemCount: orders.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        var order = orders[index];
+                        var memberID = order['memberID'].toString();
+                        final orderId = order['orderID'];
+
+                        // Find the member with matching memberID
+                        var memberData = members.firstWhere(
+                            (member) =>
+                                member['memberID'].toString() == memberID,
+                            orElse: () => null);
+
+                        var memberName =
+                            memberData != null ? memberData['name'] : 'N/A';
+                        var memberMobile =
+                            memberData != null ? memberData['mobile'] : 'N/A';
+
+                        String formattedNumber =
+                            '(${memberMobile.substring(0, 4)}) ${memberMobile.substring(4, 7)}-${memberMobile.substring(7)}';
+
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                              top: 5.0, left: 8.0, right: 8.0),
+                          child: Card(
+                            child: Column(children: [
+                              Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8.0),
+                                    child: Image.asset(
+                                      "lib/assets/Artboard 40 copy 2.png",
+                                      width: 30,
+                                      height: 30,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 16,
+                                    ), // Add padding to the left
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          memberName,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.black,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          formattedNumber,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Divider(),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.access_time,
+                                          size: 18,
+                                          color: Colors.grey,
+                                        ),
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 8.0),
+                                          child: Text(
+                                            DateFormat('dd-MM-yyyy').format(
+                                                DateTime
+                                                    .fromMillisecondsSinceEpoch(
+                                                        order['createDate'] *
+                                                            1000)),
+                                            style: TextStyle(
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                        Spacer(),
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 8.0),
+                                          child: Text(
+                                            order['amount'].toStringAsFixed(2),
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ]),
+                          ),
+                        );
+                      },
+                    );
+                  }
+                },
+              )
+            ],
           ),
           centerText1(),
           centerText2(),
@@ -265,49 +417,91 @@ class _orderPage extends State<orderPage> {
     );
   }
 
-//fetch the pending order from api
-  Future<List<dynamic>> fetchPending() async {
+  // getMember() async {
+  //   var headers = {'token': token};
+  //   var request = http.Request(
+  //       'GET', Uri.parse('https://member.tunai.io/loyalty/member'));
+
+  //   request.headers.addAll(headers);
+
+  //   http.StreamedResponse response = await request.send();
+
+  //   if (response.statusCode == 200) {
+  //     final responsebody = await response.stream.bytesToString();
+  //     final body = json.decode(responsebody);
+  //     print(await response.stream.bytesToString());
+
+  //     member = body;
+  //   } else {
+  //     print(response.reasonPhrase);
+  //   }
+  // }
+
+  // Future getOrder() async {
+  //   var headers = {'token': token};
+  //   var request = http.Request(
+  //       'GET', Uri.parse('https://order.tunai.io/loyalty/order?active=1'));
+
+  //   request.headers.addAll(headers);
+
+  //   http.StreamedResponse response = await request.send();
+  //   if (response.statusCode == 200) {
+  //     final responsebody = await response.stream.bytesToString();
+  //     final body = json.decode(responsebody);
+
+  //     if (body != null) {
+  //       order = body;
+  //       print(order);
+  //       return order;
+  //     } else {
+  //       print('No orders found.');
+  //       return null;
+  //     }
+  //   } else {
+  //     // Handle the response status code if needed
+  //   }
+  // }
+
+  Future<Map<String, dynamic>> fetchPendingAndMembers() async {
     var headers = {
       'token': token,
     };
 
-    var request = http.Request(
+    var pendingRequest = http.Request(
       'GET',
       Uri.parse('https://order.tunai.io/loyalty/order?active=1'),
     );
+    pendingRequest.headers.addAll(headers);
 
-    request.headers.addAll(headers);
+    var membersRequest = http.Request(
+      'GET',
+      Uri.parse('https://order.tunai.io/loyalty/order?active=1'),
+    );
+    membersRequest.headers.addAll(headers);
 
-    http.StreamedResponse response = await request.send();
+    var pendingResponse = await http.Client().send(pendingRequest);
+    var membersResponse = await http.Client().send(membersRequest);
 
-    if (response.statusCode == 200) {
-      final responsebody = await response.stream.bytesToString();
-      final body = json.decode(responsebody);
-      List<dynamic> pending = body['orders'];
-      return pending;
+    if (pendingResponse.statusCode == 200 &&
+        membersResponse.statusCode == 200) {
+      final pendingResponseBody = await pendingResponse.stream.bytesToString();
+      final membersResponseBody = await membersResponse.stream.bytesToString();
+      final pendingBody = json.decode(pendingResponseBody);
+      final membersBody = json.decode(membersResponseBody);
+
+      orders = pendingBody['orders'];
+      members = membersBody['members'];
+
+      Map<String, dynamic> result = {
+        'pending': orders,
+        'members': members,
+      };
+      // print('In the result: $result');
+      return result;
     } else {
-      print(response.reasonPhrase);
-      return [];
-    }
-  }
-
-//use to create order using member
-  Future addMember() async {
-    var headers = {
-      'token': token,
-      'Content-Type': 'application/x-www-form-urlencoded'
-    };
-
-    var request =
-        http.Request('POST', Uri.parse('https://order.tunai.io/loyalty/order'));
-    request.bodyFields = {'memberID': '18799091'};
-    request.headers.addAll(headers);
-
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 200) {
-    } else {
-      print(response.reasonPhrase);
+      print(pendingResponse.reasonPhrase);
+      print(membersResponse.reasonPhrase);
+      return {};
     }
   }
 }

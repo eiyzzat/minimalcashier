@@ -7,9 +7,6 @@ import 'package:minimal/test/trialReceipt.dart';
 import '../api.dart';
 import 'dart:convert';
 
-import '../menu.dart';
-import '../orderPage.dart';
-
 class TrialPaymentPage extends StatefulWidget {
   const TrialPaymentPage(
       {required this.calculateSubtotal,
@@ -26,16 +23,28 @@ class TrialPaymentPage extends StatefulWidget {
 }
 
 class _TrialPaymentPageState extends State<TrialPaymentPage> {
+  Set<int> _selectedIndices = Set<int>();
+
   bool _isClicked = false;
 
   bool isCustomTapped = false;
   bool isAccurateTapped = false;
   bool isContainerTapped = false;
 
+  bool isDebitTapped = false;
+  bool isCreditTapped = false;
+
+  TextEditingController debitController = TextEditingController();
+  TextEditingController creditController = TextEditingController();
+
   bool okTapped = false;
   bool showRefresh = false;
   TextEditingController customAmountController = TextEditingController();
-  String paid = '';
+  double paid = 0;
+  double creditpaid = 0;
+  double debittpaid = 0;
+
+  // double totalPaid = paid + creditpaid;
 
   @override
   void dispose() {
@@ -66,9 +75,11 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
     List<double> possibleValues =
         generatePossibleValues(widget.calculateSubtotal, denominations);
 
-    num difference =
-        paid.isEmpty ? 0 : double.parse(paid) - widget.calculateSubtotal;
+    // num difference =
+    //     paid.isEmpty ? 0 : double.parse(paid) +  double.parse(creditpaid) - widget.calculateSubtotal;
 
+    double topay = paid + creditpaid + debittpaid;
+    double difference = topay - widget.calculateSubtotal;
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -95,7 +106,7 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
                 child: Container(
                   width: double.infinity,
                   height: okTapped ? 80 : 74,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.all(Radius.circular(15)),
                   ),
@@ -109,7 +120,7 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
                           children: [
                             Text(
                               okTapped ? 'Paid' : 'Total bill',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -118,9 +129,9 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
                             ),
                             Text(
                               okTapped
-                                  ? '${double.parse(paid).toStringAsFixed(2)}'
+                                  ? topay.toStringAsFixed(2)
                                   : widget.calculateSubtotal.toStringAsFixed(2),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 18,
                                 color: Colors.blue,
                                 overflow: TextOverflow.ellipsis,
@@ -133,8 +144,10 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Change',
-                                style: TextStyle(
+                                isCreditTapped || isDebitTapped
+                                    ? 'Total remaining'
+                                    : 'Change',
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black,
@@ -143,7 +156,7 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
                               ),
                               Text(
                                 difference.toStringAsFixed(2),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 18,
                                   color: Colors.blue,
                                   overflow: TextOverflow.ellipsis,
@@ -156,7 +169,17 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
                   ),
                 ),
               ),
-              cashText(),
+              Padding(
+                padding: const EdgeInsets.only(top: 10.0, left: 16),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Cash',
+                      style: TextStyle(fontSize: 14, color: Colors.black),
+                    ),
+                  ],
+                ),
+              ),
               Column(
                 children: [
                   Padding(
@@ -165,7 +188,8 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
                       shrinkWrap: true,
                       itemCount: possibleValues.length +
                           1, // Add 1 for the additional container
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
                         childAspectRatio: 2,
                         crossAxisSpacing: 10,
@@ -185,7 +209,7 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
                             child: Container(
                               width: 106,
                               height: 47,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: Colors.white,
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(8)),
@@ -194,16 +218,15 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
                                 child: isCustomTapped
                                     ? TextField(
                                         controller: customAmountController,
-                                        keyboardType:
-                                            TextInputType.numberWithOptions(
-                                                decimal: true),
+                                        keyboardType: const TextInputType
+                                            .numberWithOptions(decimal: true),
                                         inputFormatters: [
                                           FilteringTextInputFormatter.allow(
                                               RegExp(r'^\d+\.?\d{0,2}')),
                                         ],
                                         onChanged: (value) {
                                           setState(() {
-                                            paid = value;
+                                            paid = double.parse(value);
                                           });
                                         },
                                         decoration: const InputDecoration(
@@ -233,18 +256,25 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
                                 // Handle the tap on the grid item here
                                 // Access the value of the tapped container (value)
                                 isContainerTapped = true;
-                                isCustomTapped = false;
+                                _selectedIndices.clear();
+                                if (_selectedIndices.contains(index)) {
+                                  _selectedIndices.remove(
+                                      index); // Remove the index if already selected
+                                } else {
+                                  _selectedIndices.add(
+                                      index); // Add the index if not already selected
+                                }
+                                paid = value;
+
                                 print('Tapped value: $value');
                               });
                             },
                             child: Container(
                               decoration: BoxDecoration(
-                                color: isContainerTapped
-                                    ? Colors.blue
-                                    : Colors.white,
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: isContainerTapped
+                                  color: _selectedIndices.contains(index)
                                       ? Colors.blue
                                       : Colors.transparent,
                                   width: 2,
@@ -268,6 +298,146 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
                   ),
                 ],
               ),
+              Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Credit',
+                      style: TextStyle(fontSize: 14, color: Colors.black),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              setState(() {
+                                isDebitTapped = false;
+                                isCreditTapped = true;
+                              });
+                            },
+                            child: Container(
+                              height: 47,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isCreditTapped
+                                      ? Colors.blue
+                                      : Colors.transparent,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Center(
+                                child: isCreditTapped
+                                    ? TextField(
+                                        controller: creditController,
+                                        keyboardType:
+                                            TextInputType.numberWithOptions(
+                                                decimal: true),
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.allow(
+                                              RegExp(r'^\d+\.?\d{0,2}')),
+                                        ],
+                                        decoration: const InputDecoration(
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            try {
+                                              creditpaid = double.parse(value);
+                                            } catch (e) {
+                                              creditpaid =
+                                                  0.0; // Set a default value when the parsing fails
+                                            }
+                                          
+                                          });
+                                        },
+                                      )
+                                    : const Text(
+                                        'Credit Card',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              setState(() {
+                                isDebitTapped = true;
+                                isCreditTapped = false;
+                              });
+                            },
+                            child: Container(
+                              height: 47,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDebitTapped
+                                      ? Colors.blue
+                                      : Colors.transparent,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Center(
+                                child: isDebitTapped
+                                    ? TextField(
+                                        controller: debitController,
+                                        keyboardType:
+                                            TextInputType.numberWithOptions(
+                                                decimal: true),
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.allow(
+                                              RegExp(r'^\d+\.?\d{0,2}')),
+                                        ],
+                                        decoration: const InputDecoration(
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            try {
+                                              debittpaid = double.parse(value);
+                                            } catch (e) {
+                                              debittpaid =
+                                                  0.0; // Set a default value when the parsing fails
+                                            }
+                                          });
+                                        },
+                                      )
+                                    : const Text(
+                                        'Debit Card',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ],
@@ -289,7 +459,8 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
   }
 
   Widget refreshIcon() {
-    bool anyContainerTapped = isContainerTapped || isCustomTapped;
+    bool anyContainerTapped =
+        isContainerTapped || isCreditTapped || isDebitTapped || isCustomTapped;
     return anyContainerTapped
         ? TextButton(
             onPressed: () {
@@ -350,24 +521,6 @@ class _TrialPaymentPageState extends State<TrialPaymentPage> {
           style: TextStyle(fontSize: 18),
         ),
       ),
-    );
-  }
-
-  Widget cashText() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 10.0, left: 16),
-          child: Row(
-            children: [
-              Text(
-                'Cash',
-                style: TextStyle(fontSize: 14, color: Colors.black),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

@@ -18,7 +18,6 @@ class TrialEditItem extends StatefulWidget {
       required this.updateQuantity,
       required this.updateRemarks,
       required this.updateDiscount,
-      
       Key? key});
 
   final String cartOrderId;
@@ -30,7 +29,6 @@ class TrialEditItem extends StatefulWidget {
   final Function updateQuantity;
   final Function updateRemarks;
   final Function updateDiscount;
-  
 
   @override
   State<TrialEditItem> createState() => _TrialEditItemState();
@@ -376,10 +374,12 @@ class _TrialEditItemState extends State<TrialEditItem> {
                                 itemBuilder: (context, index) {
                                   final detail = selectedStaffDetails[index];
                                   print("Detail: $detail");
-                                   dynamic theStaff= staff.firstWhere((theStaff) =>
-                                    theStaff['staffID'] == detail ['staffID']);
-                                    final displayStaffName = theStaff;
-                                    final theName = displayStaffName['name'];
+                                  dynamic theStaff = staff.firstWhere(
+                                      (theStaff) =>
+                                          theStaff['staffID'] ==
+                                          detail['staffID']);
+                                  final displayStaffName = theStaff;
+                                  final theName = displayStaffName['name'];
                                   // var effortText = effortControllers[index];
                                   // var handsOnText =
                                   //     handsOnControllers[index];
@@ -390,6 +390,7 @@ class _TrialEditItemState extends State<TrialEditItem> {
                                         padding: const EdgeInsets.all(8.0),
                                         child: Row(
                                           children: [
+                                            
                                             Image.asset(
                                               "lib/assets/Artboard 40 copy 2.png",
                                               width: 30,
@@ -496,6 +497,9 @@ class _TrialEditItemState extends State<TrialEditItem> {
                                                                 },
                                                                 child:
                                                                     TextFormField(
+                                                                  initialValue:
+                                                                      detail['effort']
+                                                                          .toString(),
                                                                   // controller:
                                                                   //     effortText,
                                                                   style:
@@ -609,6 +613,9 @@ class _TrialEditItemState extends State<TrialEditItem> {
                                                                 },
                                                                 child:
                                                                     TextFormField(
+                                                                  initialValue:
+                                                                      detail['handon']
+                                                                          .toString(),
                                                                   // controller:
                                                                   //     handsOnText,
                                                                   style:
@@ -627,6 +634,20 @@ class _TrialEditItemState extends State<TrialEditItem> {
                                                                   onChanged:
                                                                       (value) {
                                                                     // Handle changes in Hands on value
+                                                                    setState(
+                                                                        () {
+                                                                      try {
+                                                                        detail['handon'] =
+                                                                            int.parse(value); // Update the 'handon' value
+                                                                      } catch (e) {
+                                                                        // Handle parsing error (e.g., display an error message)
+                                                                        print(
+                                                                            'Error: $e');
+                                                                        // You can set a fallback value or display an error message to the user
+                                                                        detail['handon'] =
+                                                                            0; // Fallback value
+                                                                      }
+                                                                    });
                                                                   },
                                                                   decoration:
                                                                       InputDecoration(
@@ -716,13 +737,11 @@ class _TrialEditItemState extends State<TrialEditItem> {
                                       child: TextField(
                                         controller: remarksController,
                                         decoration: InputDecoration(
-                                          labelText:widget.itemData[
-                                                              'remarks'] !=
-                                                          null
-                                                      ? widget
-                                                          .itemData['remarks']
-                                                          .toString()
-                                                      : 'Type here',
+                                          labelText:
+                                              widget.itemData['remarks'] != null
+                                                  ? widget.itemData['remarks']
+                                                      .toString()
+                                                  : 'Type here',
                                           floatingLabelBehavior:
                                               FloatingLabelBehavior.never,
                                           border: InputBorder.none,
@@ -795,7 +814,6 @@ class _TrialEditItemState extends State<TrialEditItem> {
                                             child: SizedBox(
                                               height: 29,
                                               child: TextField(
-                                                
                                                 controller: discController,
                                                 decoration: InputDecoration(
                                                   labelText: widget.itemData[
@@ -805,7 +823,6 @@ class _TrialEditItemState extends State<TrialEditItem> {
                                                           .itemData['discount']
                                                           .toString()
                                                       : 'Type here',
-                                                      
                                                   floatingLabelBehavior:
                                                       FloatingLabelBehavior
                                                           .never,
@@ -992,14 +1009,14 @@ class _TrialEditItemState extends State<TrialEditItem> {
     // Iterate over the existing staff details and update the effort and hands-on values
     for (int i = 0; i < selectedStaffDetails.length; i++) {
       var staffDetail = selectedStaffDetails[i];
-      // var effortText = effortControllers[i];
-      // var handsOnText = handsOnControllers[i];
+      var effortText = effortControllers[i];
+      var handsOnText = handsOnControllers[i];
       var updatedStaffDetail = {
         'staffID': staffDetail['staffID'],
         'name': staffDetail['name'],
         'image': staffDetail['image'],
-        // 'effort': effortText.text,
-        // 'handson': handsOnText.text,
+        'effort': effortText.text,
+        'handson': handsOnText.text,
       };
       updatedStaffDetails.add(updatedStaffDetail);
     }

@@ -21,9 +21,13 @@ class OrdersPending extends StatefulWidget {
 }
 
 class _OrdersPendingState extends State<OrdersPending> {
+  
   List<dynamic> orders = [];
   List<dynamic> members = [];
   List<dynamic> walkin = [];
+  List<dynamic> walkinOrder = [];
+  String memberName = "Walk-In";
+  String mobile = "0000000000";
 
   int walkInMemberID = 0;
 
@@ -66,8 +70,16 @@ class _OrdersPendingState extends State<OrdersPending> {
           'Pending Order',
           style: TextStyle(color: Colors.black),
         ),
-        leading: xIcon(),
-        actions: [pendingIcon()],
+        leading: IconButton(
+      icon: Image.asset(
+        "lib/assets/Artboard 40.png",
+        height: 30,
+        width: 20,
+      ),
+      onPressed: () => Navigator.pop(context,orders),
+      iconSize: 24,
+    ),
+        
       ),
       body: SingleChildScrollView(
         child: Stack(
@@ -141,7 +153,10 @@ class _OrdersPendingState extends State<OrdersPending> {
                       SizedBox(width: 10),
                       Expanded(
                         child: GestureDetector(
-                          onTap: () async {
+                          onTap: () async{
+                            // createOrder();
+
+                            /////////////////////////////////////////////////////////////
                             var headers = {'token': token};
                             var request = http.Request(
                                 'GET',
@@ -542,5 +557,49 @@ class _OrdersPendingState extends State<OrdersPending> {
       return {};
     }
   }
-  
+
+  Future createOrder() async {
+    var headers = {
+      'token': token,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    };
+
+    var request =
+        http.Request('POST', Uri.parse('https://order.tunai.io/loyalty/order'));
+
+    var memberID = '21887957';
+    request.bodyFields = {'memberID': memberID};
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      final responsebody = await response.stream.bytesToString();
+      final body = json.decode(responsebody);
+
+      walkinOrder = body['orders'];
+     var orderID = walkinOrder[0]['orderID'];
+
+      // dynamic wOrder = walkinOrder.firstWhere(
+      //                           (wOrder) => "21887957" == wOrder['memberID']);
+      //                       final walkOrder = wOrder;
+      //                       final walkOrderId = walkOrder[0]['orderID'];
+
+      print("walkinOrder: $walkinOrder orderID: $orderID ");
+     
+
+      // ignore: use_build_context_synchronously
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => trialMenuPage(
+                  memberMobile: mobile,
+                  memberName: memberName,
+                  orderId: orderID.toString(),
+                )),
+      );
+    } else {
+      print(response.reasonPhrase);
+    }
+  }
 }
