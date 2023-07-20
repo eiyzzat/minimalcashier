@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:minimal/test/addMember.dart';
+import 'package:minimal/test/login.dart';
 import 'package:minimal/test/memberPage.dart';
 import 'package:minimal/test/trialMenu.dart';
 import 'package:minimal/test/walkin.dart';
@@ -13,19 +14,30 @@ import 'menu.dart';
 
 class OrdersPending extends StatefulWidget {
   const OrdersPending({
+    required this.getLatest,
+    required this.updateFirst,
+    required this.onOrderSelected,
     Key? key,
   }) : super(key: key);
+
+  final Function getLatest;
+  final Function updateFirst;
+  final Function(dynamic) onOrderSelected;
 
   @override
   State<OrdersPending> createState() => _OrdersPendingState();
 }
 
 class _OrdersPendingState extends State<OrdersPending> {
-  
   List<dynamic> orders = [];
   List<dynamic> members = [];
+
+  List<dynamic> testorders = [];
+  List<dynamic> testmembers = [];
+  List simpan = [];
+
   List<dynamic> walkin = [];
-  List<dynamic> walkinOrder = [];
+  Map<String, dynamic> walkinOrder = {};
   String memberName = "Walk-In";
   String mobile = "0000000000";
 
@@ -54,7 +66,7 @@ class _OrdersPendingState extends State<OrdersPending> {
   @override
   void initState() {
     super.initState();
-    displayPending();
+    // displayPending();
   }
 
   @override
@@ -71,15 +83,14 @@ class _OrdersPendingState extends State<OrdersPending> {
           style: TextStyle(color: Colors.black),
         ),
         leading: IconButton(
-      icon: Image.asset(
-        "lib/assets/Artboard 40.png",
-        height: 30,
-        width: 20,
-      ),
-      onPressed: () => Navigator.pop(context,orders),
-      iconSize: 24,
-    ),
-        
+          icon: Image.asset(
+            "lib/assets/Artboard 40.png",
+            height: 30,
+            width: 20,
+          ),
+          onPressed: () => Navigator.pop(context, orders),
+          iconSize: 24,
+        ),
       ),
       body: SingleChildScrollView(
         child: Stack(
@@ -102,7 +113,8 @@ class _OrdersPendingState extends State<OrdersPending> {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
-            height: 95,
+            // height: 95, sekali walkin
+            height: 60,
             width: double.infinity,
             color: Colors.grey[200]?.withOpacity(0.0),
             child: Padding(
@@ -117,7 +129,9 @@ class _OrdersPendingState extends State<OrdersPending> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const AddMember()),
+                                  builder: (context) => AddMember(
+                                        updateData: updateData,
+                                      )),
                             );
                             // Navigator.push(
                             //   context,
@@ -151,43 +165,81 @@ class _OrdersPendingState extends State<OrdersPending> {
                         ),
                       ),
                       SizedBox(width: 10),
+                      // Expanded(
+                      //   child: GestureDetector(
+                      //     onTap: () async {
+                      //       await createOrder(context);
+
+                      //       Navigator.of(context).pop(walkinOrder);
+
+                      //       /////////////////////////////////////////////////////////////
+                      //       //   var headers = {'token': token};
+                      //       //   var request = http.Request(
+                      //       //       'GET',
+                      //       //       Uri.parse(
+                      //       //           'https://member.tunai.io/cashregister/member/walkin'));
+
+                      //       //   request.headers.addAll(headers);
+
+                      //       //   http.StreamedResponse response =
+                      //       //       await request.send();
+
+                      //       //   if (response.statusCode == 200) {
+                      //       //     final responsebody =
+                      //       //         await response.stream.bytesToString();
+                      //       //     var body = json.decode(responsebody);
+                      //       //     Map<String, dynamic> _walkin = body;
+
+                      //       //     walkin = _walkin['members'];
+
+                      //       //     if (walkin != null && walkin.isNotEmpty) {
+                      //       //       for (var i = 0; i < walkin.length; i++) {
+                      //       //         walkInMemberID = walkin[i]['memberID'];
+                      //       //       }
+                      //       //     }
+                      //       //   } else {
+                      //       //     print(response.reasonPhrase);
+                      //       //   }
+                      //       //   print(walkin);
+
+                      //       //   print(walkInMemberID);
+                      //     },
+                      //     child: Container(
+                      //       height: 35,
+                      //       decoration: BoxDecoration(
+                      //         color: Colors.blue,
+                      //         borderRadius: BorderRadius.circular(10),
+                      //       ),
+                      //       child: Row(
+                      //         mainAxisAlignment: MainAxisAlignment.center,
+                      //         children: [
+                      //           Image.asset(
+                      //             'lib/assets/1.png',
+                      //             height: 19,
+                      //             width: 22,
+                      //           ),
+                      //           SizedBox(width: 10),
+                      //           const Text(
+                      //             'Walk-in',
+                      //             style: TextStyle(
+                      //                 fontSize: 16, color: Colors.white),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                       Expanded(
                         child: GestureDetector(
-                          onTap: () async{
-                            // createOrder();
-
-                            /////////////////////////////////////////////////////////////
-                            var headers = {'token': token};
-                            var request = http.Request(
-                                'GET',
-                                Uri.parse(
-                                    'https://member.tunai.io/cashregister/member/walkin'));
-
-                            request.headers.addAll(headers);
-
-                            http.StreamedResponse response =
-                                await request.send();
-
-                            if (response.statusCode == 200) {
-                              final responsebody =
-                                  await response.stream.bytesToString();
-                              var body = json.decode(responsebody);
-                              Map<String, dynamic> _walkin = body;
-
-                              walkin = _walkin['members'];
-
-                              if (walkin != null && walkin.isNotEmpty) {
-                                for (var i = 0; i < walkin.length; i++) {
-                                  walkInMemberID = walkin[i]['memberID'];
-                                }
-                              }
-                            } else {
-                              print(response.reasonPhrase);
-                            }
-                            print(walkin);
-
-                            print(walkInMemberID);
-                          },
+                          onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => CarMemberPage(
+                                    updateData: updateData,
+                                  )),
+                        );
+                      },
                           child: Container(
                             height: 35,
                             decoration: BoxDecoration(
@@ -198,13 +250,13 @@ class _OrdersPendingState extends State<OrdersPending> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Image.asset(
-                                  'lib/assets/1.png',
+                                  'lib/assets/2.png',
                                   height: 19,
                                   width: 22,
                                 ),
                                 SizedBox(width: 10),
-                                Text(
-                                  'Walk-in',
+                                const Text(
+                                  'Search member',
                                   style: TextStyle(
                                       fontSize: 16, color: Colors.white),
                                 ),
@@ -215,42 +267,44 @@ class _OrdersPendingState extends State<OrdersPending> {
                       ),
                     ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => CarMemberPage()),
-                        );
-                      },
-                      child: Container(
-                        height: 35,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              'lib/assets/2.png',
-                              height: 19,
-                              width: 22,
-                            ),
-                            SizedBox(width: 10),
-                            Text(
-                              'Search member',
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
+                  // Padding(
+                  //   padding: const EdgeInsets.only(top: 8.0),
+                  //   child: GestureDetector(
+                  //     onTap: () {
+                  //       Navigator.push(
+                  //         context,
+                  //         MaterialPageRoute(
+                  //             builder: (context) => CarMemberPage(
+                  //                   updateData: updateData,
+                  //                 )),
+                  //       );
+                  //     },
+                  //     child: Container(
+                  //       height: 35,
+                  //       width: double.infinity,
+                  //       decoration: BoxDecoration(
+                  //         color: Colors.blue,
+                  //         borderRadius: BorderRadius.circular(10),
+                  //       ),
+                  //       child: Row(
+                  //         mainAxisAlignment: MainAxisAlignment.center,
+                  //         children: [
+                  //           Image.asset(
+                  //             'lib/assets/2.png',
+                  //             height: 19,
+                  //             width: 22,
+                  //           ),
+                  //           SizedBox(width: 10),
+                  //           Text(
+                  //             'Search member',
+                  //             style:
+                  //                 TextStyle(fontSize: 16, color: Colors.white),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   ),
+                  // )
                 ],
               ),
             ),
@@ -269,6 +323,7 @@ class _OrdersPendingState extends State<OrdersPending> {
           ),
         ),
         displayPending(),
+        // testingDisplay(),
         Padding(
           padding: const EdgeInsets.only(left: 15.0),
           child: Row(
@@ -291,7 +346,7 @@ class _OrdersPendingState extends State<OrdersPending> {
       builder:
           (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
+          return const Center(
             child: CircularProgressIndicator(),
           );
         } else if (snapshot.hasError) {
@@ -301,7 +356,7 @@ class _OrdersPendingState extends State<OrdersPending> {
         } else {
           Map<String, dynamic>? data = snapshot.data;
           if (data == null) {
-            return Center(
+            return const Center(
               child: Text('No data available.'),
             );
           }
@@ -326,17 +381,21 @@ class _OrdersPendingState extends State<OrdersPending> {
               var memberName = memberData != null ? memberData['name'] : 'N/A';
               var memberMobile =
                   memberData != null ? memberData['mobile'] : 'N/A';
+              if (memberMobile == '000000000000') {
+                memberName = 'Walk-in';
+              }
 
               String formattedNumber =
                   '(${memberMobile.substring(0, 4)}) ${memberMobile.substring(4, 7)}-${memberMobile.substring(7)}';
 
               return GestureDetector(
                 onTap: () {
+                  print(order);
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return CupertinoTheme(
-                        data: CupertinoThemeData(
+                        data: const CupertinoThemeData(
                           primaryContrastingColor: Colors.white,
                         ),
                         child: CupertinoAlertDialog(
@@ -352,36 +411,10 @@ class _OrdersPendingState extends State<OrdersPending> {
                             CupertinoDialogAction(
                               child: Text('Yes'),
                               onPressed: () {
-                                Navigator.of(context)
-                                    .pop(); // Dismiss the dialog
-                                Navigator.of(context)
-                                    .push(
-                                      PageRouteBuilder(
-                                        pageBuilder: (context, animation,
-                                                secondaryAnimation) =>
-                                            //sini pakai testMenuPage
-                                            trialMenuPage(
-                                          orderId: orderId.toString(),
-                                          // memberId: (orders[index] as Map<
-                                          //         String, dynamic>)['memberID']
-                                          //     .toString(),
-                                          memberName: memberName,
-                                          memberMobile: formattedNumber,
-                                        ),
-                                        transitionsBuilder: (context, animation,
-                                            secondaryAnimation, child) {
-                                          return SlideTransition(
-                                            position: Tween<Offset>(
-                                              begin: Offset(0,
-                                                  1), // Start the transition from bottom
-                                              end: Offset.zero,
-                                            ).animate(animation),
-                                            child: child,
-                                          );
-                                        },
-                                      ),
-                                    )
-                                    .then((value) => setState(() {}));
+                                Navigator.of(context).pop();
+                                widget.onOrderSelected(order);
+                                Navigator.pop(context);
+                                // Navigator.of(context).pop(order);
                               },
                             ),
                           ],
@@ -400,9 +433,34 @@ class _OrdersPendingState extends State<OrdersPending> {
                       color: Colors.red,
                       child: const Icon(Icons.delete, color: Colors.white),
                     ),
-                    onDismissed: (direction) {
-                      deleteOrder(orderId);
-                      print(orderId);
+                    confirmDismiss: (direction) async {
+                      return await showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return CupertinoAlertDialog(
+                            title: const Text("Confirmation"),
+                            content: const Text(
+                                "Are you sure you want to delete this order?"),
+                            actions: [
+                              CupertinoDialogAction(
+                                onPressed: () => Navigator.of(context)
+                                    .pop(false), // No button
+                                child: const Text("No"),
+                              ),
+                              CupertinoDialogAction(
+                                onPressed: () => Navigator.of(context)
+                                    .pop(true), // Yes button
+                                child: const Text("Yes"),
+                                isDestructiveAction: true,
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    onDismissed: (direction) async {
+                      await deleteOrder(orderId);
+                      widget.updateFirst();
                     },
                     child: Card(
                       child: Column(children: [
@@ -419,7 +477,7 @@ class _OrdersPendingState extends State<OrdersPending> {
                             Padding(
                               padding: const EdgeInsets.only(
                                 left: 16,
-                              ), // Add padding to the left
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -498,8 +556,14 @@ class _OrdersPendingState extends State<OrdersPending> {
     );
   }
 
+  void updateData() async {
+    await fetchPendingAndMembers();
+    widget.updateFirst();
+    setState(() {});
+  }
+
   Future deleteOrder(int orderId) async {
-    var headers = {'token': token};
+    var headers = {'token': tokenGlobal};
     var request = http.Request('POST',
         Uri.parse('https://order.tunai.io/loyalty/order/$orderId/delete'));
 
@@ -509,6 +573,7 @@ class _OrdersPendingState extends State<OrdersPending> {
 
     if (response.statusCode == 200) {
       print(await response.stream.bytesToString());
+
       print("delete order");
     } else {
       print(response.reasonPhrase);
@@ -517,7 +582,7 @@ class _OrdersPendingState extends State<OrdersPending> {
 
   Future<Map<String, dynamic>> fetchPendingAndMembers() async {
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
     };
 
     var pendingRequest = http.Request(
@@ -544,12 +609,13 @@ class _OrdersPendingState extends State<OrdersPending> {
 
       orders = pendingBody['orders'];
       members = membersBody['members'];
+      // widget.getLatest();
 
       Map<String, dynamic> result = {
         'pending': orders,
         'members': members,
       };
-      // print('In the result: $result');
+
       return result;
     } else {
       print(pendingResponse.reasonPhrase);
@@ -558,14 +624,16 @@ class _OrdersPendingState extends State<OrdersPending> {
     }
   }
 
-  Future createOrder() async {
+  Future<void> createOrder(BuildContext context) async {
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
       'Content-Type': 'application/x-www-form-urlencoded'
     };
 
-    var request =
-        http.Request('POST', Uri.parse('https://order.tunai.io/loyalty/order'));
+    var request = http.Request(
+      'POST',
+      Uri.parse('https://order.tunai.io/loyalty/order'),
+    );
 
     var memberID = '21887957';
     request.bodyFields = {'memberID': memberID};
@@ -577,29 +645,86 @@ class _OrdersPendingState extends State<OrdersPending> {
       final responsebody = await response.stream.bytesToString();
       final body = json.decode(responsebody);
 
-      walkinOrder = body['orders'];
-     var orderID = walkinOrder[0]['orderID'];
+      walkinOrder = body;
+      widget.getLatest;
+      //  Navigator.of(context).pop(walkinOrder);
 
-      // dynamic wOrder = walkinOrder.firstWhere(
-      //                           (wOrder) => "21887957" == wOrder['memberID']);
-      //                       final walkOrder = wOrder;
-      //                       final walkOrderId = walkOrder[0]['orderID'];
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => FirstPage()),
+      // );
 
-      print("walkinOrder: $walkinOrder orderID: $orderID ");
-     
+      print("walkinOrder: $walkinOrder ");
 
-      // ignore: use_build_context_synchronously
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => trialMenuPage(
-                  memberMobile: mobile,
-                  memberName: memberName,
-                  orderId: orderID.toString(),
-                )),
-      );
+      print(responsebody);
     } else {
       print(response.reasonPhrase);
     }
   }
 }
+
+// CupertinoDialogAction(
+//                               child: Text('Yes'),
+//                               onPressed: () {
+//                                 Navigator.of(context)
+//                                     .pop(); // Dismiss the dialog
+//                                 Navigator.of(context)
+//                                     .push(
+//                                       PageRouteBuilder(
+//                                         pageBuilder: (context, animation,
+//                                                 secondaryAnimation) =>
+//                                             //sini pakai testMenuPage
+//                                             trialMenuPage(
+//                                           orderId: orderId.toString(),
+//                                           // memberId: (orders[index] as Map<
+//                                           //         String, dynamic>)['memberID']
+//                                           //     .toString(),
+//                                           memberName: memberName,
+//                                           memberMobile: formattedNumber,
+//                                         ),
+//                                         transitionsBuilder: (context, animation,
+//                                             secondaryAnimation, child) {
+//                                           return SlideTransition(
+//                                             position: Tween<Offset>(
+//                                               begin: Offset(0,
+//                                                   1), // Start the transition from bottom
+//                                               end: Offset.zero,
+//                                             ).animate(animation),
+//                                             child: child,
+//                                           );
+//                                         },
+//                                       ),
+//                                     )
+//                                     .then((value) => setState(() {}));
+//                               },
+//                             ),
+
+
+ // Navigator.of(context)
+                                //     .push(
+                                //       PageRouteBuilder(
+                                //         pageBuilder: (context, animation,
+                                //                 secondaryAnimation) =>
+                                //             //sini pakai testMenuPage
+                                //             trialMenuPage(
+                                //           orderId: orderId.toString(),
+                                //           // memberId: (orders[index] as Map<
+                                //           //         String, dynamic>)['memberID']
+                                //           //     .toString(),
+                                //           memberName: memberName,
+                                //           memberMobile: formattedNumber,
+                                //         ),
+                                //         transitionsBuilder: (context, animation,
+                                //             secondaryAnimation, child) {
+                                //           return SlideTransition(
+                                //             position: Tween<Offset>(
+                                //               begin: Offset(0,
+                                //                   1), // Start the transition from bottom
+                                //               end: Offset.zero,
+                                //             ).animate(animation),
+                                //             child: child,
+                                //           );
+                                //         },
+                                //       ),
+                                //     )
+                                //     .then((value) => setState(() {}));

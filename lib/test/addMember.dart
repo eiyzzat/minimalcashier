@@ -4,21 +4,21 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
-import '../api.dart';
 import '../main.dart';
 import '../ordersPending.dart';
+import 'firstPage.dart';
+import 'login.dart';
 
 class AddMember extends StatefulWidget {
-  const AddMember({super.key});
+  const AddMember({super.key, required this.updateData});
+  final Function updateData;
 
   @override
   State<AddMember> createState() => _AddMemberState();
 }
 
 class _AddMemberState extends State<AddMember> {
-
-  List <dynamic> member = [];
+  List<dynamic> member = [];
   String _errorPhoneLength = '';
 
   final TextEditingController _dateController = TextEditingController();
@@ -469,7 +469,7 @@ class _AddMemberState extends State<AddMember> {
   addMember(context) async {
     String phoneText = _selectedCountryCode['code']! + _phoneController.text;
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
       'Content-Type': 'application/x-www-form-urlencoded'
     };
 
@@ -496,23 +496,23 @@ class _AddMemberState extends State<AddMember> {
 
       phoneText = _selectedCountryCode['code']! + _phoneController.text;
       dob = '';
-      
 
       member = text['members'];
 
       // var member = int(text['members']['memberID']);
 
       print(member.first['memberID']);
-      createOrder();
-
+      await createOrder();
+      widget.updateData();
+      Navigator.pop(context);
     } else {
       print(response.reasonPhrase);
     }
   }
 
-   createOrder() async {
+  createOrder() async {
     var headers = {
-      'token':token,
+      'token': tokenGlobal,
       'Content-Type': 'application/x-www-form-urlencoded'
     };
 
@@ -526,21 +526,25 @@ class _AddMemberState extends State<AddMember> {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      setState(() {
-        showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20))),
-                builder: (BuildContext context) {
-                  return SizedBox(height: 750, child: OrdersPending());
-                },
-              );
-      });
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => FirstPage()),
+      // );
+
+      // setState(() {
+      //   showModalBottomSheet<void>(
+      //           context: context,
+      //           isScrollControlled: true,
+      //           shape: const RoundedRectangleBorder(
+      //               borderRadius:
+      //                   BorderRadius.vertical(top: Radius.circular(20))),
+      //           builder: (BuildContext context) {
+      //             return SizedBox(height: 750, child: OrdersPending());
+      //           },
+      //         );
+      // });
 
       print("Done member");
-     
     } else {
       print(response.reasonPhrase);
     }

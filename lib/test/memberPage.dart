@@ -5,9 +5,12 @@ import 'package:intl/intl.dart';
 import 'package:minimal/test/trialMenu.dart';
 
 import '../api.dart';
+import 'login.dart';
 
 class CarMemberPage extends StatefulWidget {
-  const CarMemberPage({super.key});
+  const CarMemberPage({super.key, required this.updateData});
+
+  final Function updateData;
 
   @override
   State<CarMemberPage> createState() => _CarMemberPageState();
@@ -58,7 +61,7 @@ class _CarMemberPageState extends State<CarMemberPage>
   }
 
   Future<void> getInformation() async {
-    var headers = {'token': token};
+    var headers = {'token': tokenGlobal};
     var request = http.Request(
         'GET', Uri.parse('https://member.tunai.io/cashregister/member'));
     request.bodyFields = {};
@@ -314,7 +317,7 @@ class _CarMemberPageState extends State<CarMemberPage>
 
   getMemberBox(int index) {
     getTotalVoucher() async {
-      var headers = {'token': token};
+      var headers = {'token': tokenGlobal};
       var request = http.Request(
           'GET',
           Uri.parse('https://member.tunai.io/cashregister/member/' +
@@ -354,20 +357,21 @@ class _CarMemberPageState extends State<CarMemberPage>
           final mobile = memberList[index]['mobile'];
           final memberName = memberList[index]['name'];
 
-         await createOrder(memberID.toString());
+          await createOrder(memberID.toString());
 
           var orderID = order[0]['orderID'].toString();
 
-        
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => trialMenuPage(
-                      memberMobile: mobile,
-                      memberName: memberName,
-                      orderId: orderID.toString(),
-                    )),
-          );
+          Navigator.of(context).pop(order);
+
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //       builder: (context) => trialMenuPage(
+          //             memberMobile: mobile,
+          //             memberName: memberName,
+          //             orderId: orderID.toString(),
+          //           )),
+          // );
         },
         child: Stack(children: [
           Column(
@@ -816,14 +820,13 @@ class _CarMemberPageState extends State<CarMemberPage>
 
   Future createOrder(String memberID) async {
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
       'Content-Type': 'application/x-www-form-urlencoded'
     };
 
     var request =
         http.Request('POST', Uri.parse('https://order.tunai.io/loyalty/order'));
 
-    
     request.bodyFields = {'memberID': memberID};
     request.headers.addAll(headers);
 
@@ -832,19 +835,17 @@ class _CarMemberPageState extends State<CarMemberPage>
     if (response.statusCode == 200) {
       final responsebody = await response.stream.bytesToString();
       final body = json.decode(responsebody);
-
-      order = body['orders'];
-
-     
+      setState(() {
+        order = body['orders'];
+      });
 
       print("order: $order");
-    
+      widget.updateData();
+
       // dynamic wOrder = walkinOrder.firstWhere(
       //                           (wOrder) => "21887957" == wOrder['memberID']);
       //                       final walkOrder = wOrder;
       //                       final walkOrderId = walkOrder[0]['orderID'];
-
-     
     } else {
       print(response.reasonPhrase);
     }

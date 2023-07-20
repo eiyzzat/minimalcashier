@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:minimal/test/login.dart';
 import 'api.dart';
 import 'dart:convert';
 
@@ -34,8 +35,9 @@ double getServiceTotalPrice() {
   for (var sku in selectedService.values) {
     double price = sku['selling']?.toDouble() ?? 0.0;
     totalPrice += price;
-    totalSellingPriceNotifier.value = totalPrice;
   }
+  totalSellingPriceNotifier.value = totalPrice;
+  print("totalsell: ${totalSellingPriceNotifier.value}");
   return totalSellingPriceNotifier.value;
 }
 
@@ -124,64 +126,39 @@ class _AllServicesState extends State<AllServices> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
+                                Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
                                             sku['name'],
                                             style: const TextStyle(
                                                 fontSize: 16,
                                                 color: Colors.black),
+                                             maxLines: 2,   
+                                             overflow: TextOverflow.ellipsis,
                                           ),
-                                        ],
-                                      ),
-                                      Column(
-                                        children: [
-                                          Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  '${sku['selling'].toStringAsFixed(2)}',
-                                                  style: const TextStyle(
-                                                      fontSize: 16,
-                                                      color: Colors.black),
-                                                ),
-                                                const SizedBox(width: 10),
-                                                Expanded(
-                                                  child: Container(
-                                                    width: 30,
-                                                    height: 30,
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              15.0),
-                                                    ),
-                                                    child: IconButton(
-                                                      icon: Image.asset(
-                                                        "lib/assets/Minus.png",
-                                                        height: 20,
-                                                        width: 20,
-                                                      ),
-                                                      onPressed: () {
-                                                        decrement(sku['skuID']);
-                                                      },
-                                                      iconSize: 24,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Text(
-                                                  '${selectedService[sku?['skuID']]?['quantity'] ?? 0}',
-                                                  style: const TextStyle(
-                                                      fontSize: 16,
-                                                      color: Colors.black),
-                                                ),
-                                                Container(
+                                          
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
+                                        Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment
+                                                    .spaceBetween,
+                                            children: [
+                                              Text(
+                                                '${sku['selling'].toStringAsFixed(2)}',
+                                                style: const TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.black),
+                                              ),
+                                              const SizedBox(width: 40),
+                                              Expanded(
+                                                child: Container(
                                                   width: 30,
                                                   height: 30,
                                                   decoration: BoxDecoration(
@@ -192,23 +169,52 @@ class _AllServicesState extends State<AllServices> {
                                                   ),
                                                   child: IconButton(
                                                     icon: Image.asset(
-                                                      "lib/assets/Plus.png",
+                                                      "lib/assets/Minus.png",
                                                       height: 20,
                                                       width: 20,
                                                     ),
                                                     onPressed: () {
-                                                      //increment pakai sku[skuID]
-                                                      incrementQuantity(
+                                                      thedecrement(
                                                           sku['skuID']);
                                                     },
                                                     iconSize: 24,
                                                   ),
                                                 ),
-                                              ]),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                                              ),
+                                              Text(
+                                                '${selectedService[sku?['skuID']]?['quantity'] ?? 0}',
+                                                style: const TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.black),
+                                              ),
+                                              Container(
+                                                width: 30,
+                                                height: 30,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          15.0),
+                                                ),
+                                                child: IconButton(
+                                                  icon: Image.asset(
+                                                    "lib/assets/Plus.png",
+                                                    height: 20,
+                                                    width: 20,
+                                                  ),
+                                                  onPressed: () {
+                                                    //increment pakai sku[skuID]
+                                                    // incrementQuantity(
+                                                    //     sku['skuID']);
+                                                    increase(sku['skuID']);
+                                                  },
+                                                  iconSize: 24,
+                                                ),
+                                              ),
+                                            ]),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -260,35 +266,54 @@ class _AllServicesState extends State<AllServices> {
     });
   }
 
-  void increase (int skuID) {
+  void increase(int skuID) {
+    var sku = services.firstWhere((sku) => sku['skuID'] == skuID);
+    int quantity = (selectedService[skuID]?['quantity'] ?? 0);
+    double sellingPrice = sku['selling']?.toDouble() ?? 0.0;
+
     setState(() {
       if (selectedService.containsKey(skuID)) {
-        print(selectedService);
-        int quantity =
-            (selectedService[skuID]!['quantity'] ?? 0);
-
-        var sku = services.firstWhere((sku) => sku['skuID'] == skuID);
-        double sellingPrice = sku['selling']?.toDouble() ?? 0.0;
-
+        quantity++;
+        selectedService[skuID]!['quantity'] = quantity;
+        print("quantity:$quantity");
         selectedService[skuID]!['selling'] =
             (selectedService[skuID]!['quantity']! * sellingPrice).toInt();
       } else {
         var sku = services.firstWhere((sku) => sku['skuID'] == skuID);
+
+        quantity++;
         selectedService[skuID] = {
           'selling': sku['selling'],
-          'quantity': 1,
+          'quantity': quantity,
           'skuID': skuID,
         };
+        print("else:$quantity");
       }
-     
+      int totalQuantity = calculateTotalQuantity(
+          selectedService); // Calculate the total quantity
+      print("Total Quantity: $totalQuantity");
+      print(selectedService);
+      getServiceTotalPrice();
     });
   }
 
+  int calculateTotalQuantity(Map<int, Map<String, dynamic>> selectedService) {
+    int totalQuantity = 0;
+    for (var service in selectedService.values) {
+      setState(() {
+        int quantity = service['quantity'] ?? 0;
+        totalQuantity += quantity;
+      });
+    }
+    totalQuantityNotifier.value = totalQuantity;
+    return totalQuantityNotifier.value;
+  }
+
   void decrement(int skuID) {
+    int quantity = (selectedService[skuID]?['quantity'] ?? 0);
     setState(() {
       if (selectedService.containsKey(skuID)) {
-        selectedService[skuID]!['quantity'] =
-            (selectedService[skuID]!['quantity'] ?? 0) - 1;
+        quantity--;
 
         if (selectedService[skuID]!['quantity']! <= 0) {
           // Remove the service if the quantity becomes zero or negative
@@ -301,23 +326,51 @@ class _AllServicesState extends State<AllServices> {
               (selectedService[skuID]!['quantity']! * sellingPrice).toInt();
         }
       }
+      int totalQuantity = calculateTotalQuantity(
+          selectedService); // Calculate the total quantity
+      print("Total Quantity: $totalQuantity");
 
       // Calculate the total service quantity
-      int totalServiceQuantity = selectedService.isEmpty ? 0 : selectedService.values
-          .map((service) => service['quantity'] ?? 0)
-          .reduce((a, b) => a + b);
-
-
+      // int totalServiceQuantity = selectedService.isEmpty
+      //     ? 0
+      //     : selectedService.values
+      //         .map((service) => service['quantity'] ?? 0)
+      //         .reduce((a, b) => a + b);
 
       // Update the value of totalServiceQuantityNotifier
-      totalQuantityNotifier.value = totalServiceQuantity;
+      // totalQuantityNotifier.value = totalServiceQuantity;
+      getServiceTotalPrice();
+      print(selectedService);
+    });
+  }
+
+  thedecrement(int skuID) {
+    setState(() {
+      if (selectedService.containsKey(skuID)) {
+        int quantity = (selectedService[skuID]?['quantity'] ?? 0);
+        quantity--;
+
+        if (quantity == 0) {
+          // Remove the service if the quantity becomes zero or negative
+          selectedService.remove(skuID);
+        } else {
+          var sku = services.firstWhere((sku) => sku['skuID'] == skuID);
+          double sellingPrice = sku['selling']?.toDouble() ?? 0.0;
+
+          selectedService[skuID]!['quantity'] = quantity;
+          selectedService[skuID]!['selling'] =
+              (quantity * sellingPrice).toInt();
+        }
+      }
+      int totalQuantity = calculateTotalQuantity(selectedService);
+      print("Total Quantity: $totalQuantity");
       getServiceTotalPrice();
       print(selectedService);
     });
   }
 
   Future<void> fetchServices() async {
-    var headers = {'token': token};
+    var headers = {'token': tokenGlobal};
     var request = http.Request(
         'GET', Uri.parse('https://menu.tunai.io/loyalty/type/1/sku?active=1'));
     request.bodyFields = {};

@@ -677,22 +677,22 @@ void refresh (){
                       children: [
                         GestureDetector(
                           onTap: () {
-                            showModalBottomSheet<void>(
-                              context: context,
-                              isScrollControlled: true,
-                              shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(20))),
-                              builder: (BuildContext context) {
-                                return SizedBox(
-                                    height: 750,
-                                    child: StaffPart(
-                                      cartOrderId: widget.cartOrderId,
-                                      otems: otems,
-                                      skus: skus,
-                                    ));
-                              },
-                            ).then((value) {});
+                            // showModalBottomSheet<void>(
+                            //   context: context,
+                            //   isScrollControlled: true,
+                            //   shape: const RoundedRectangleBorder(
+                            //       borderRadius: BorderRadius.vertical(
+                            //           top: Radius.circular(20))),
+                            //   builder: (BuildContext context) {
+                            //     return SizedBox(
+                            //         height: 750,
+                            //         child: StaffPart(
+                            //           cartOrderId: widget.cartOrderId,
+                            //           otems: otems,
+                            //           skus: skus,
+                            //         ));
+                            //   },
+                            // ).then((value) {});
                           },
                           child: Container(
                             width: 120,
@@ -722,37 +722,37 @@ void refresh (){
                         //Container Discount
                         InkWell(
                           onTap: () async {
-                            final result = await showModalBottomSheet<
-                                Map<String, dynamic>>(
-                              context: context,
-                              isScrollControlled: true,
-                              shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(20))),
-                              builder: (BuildContext context) {
-                                return SizedBox(
-                                  height: 750,
-                                  child: Discount(
-                                    orderId: widget.cartOrderId,
-                                    otems: otems,
-                                    skus: skus,
-                                    updateDiscount: updateDiscount,
-                                  ),
-                                );
-                              },
-                            );
+                            // final result = await showModalBottomSheet<
+                            //     Map<String, dynamic>>(
+                            //   context: context,
+                            //   isScrollControlled: true,
+                            //   shape: const RoundedRectangleBorder(
+                            //       borderRadius: BorderRadius.vertical(
+                            //           top: Radius.circular(20))),
+                            //   builder: (BuildContext context) {
+                            //     return SizedBox(
+                            //       height: 750,
+                            //       child: Discount(
+                            //         orderId: widget.cartOrderId,
+                            //         otems: otems,
+                            //         skus: skus,
+                            //         updateDiscount: updateDiscount,
+                            //       ),
+                            //     );
+                            //   },
+                            // );
 
-                            if (result != null) {
-                              Map<String, Map<String, String>> discItemMap =
-                                  result['discItemMap'];
-                              String discount = result['discount'];
-                              latestDiscount = double.parse(result['discount']);
+                            // if (result != null) {
+                            //   Map<String, Map<String, String>> discItemMap =
+                            //       result['discItemMap'];
+                            //   String discount = result['discount'];
+                            //   latestDiscount = double.parse(result['discount']);
 
-                              // Process the returned data here
-                              print('Discount Item Map: $discItemMap');
-                              print('Discount: $discount');
-                              // Perform further actions with the data as needed
-                            }
+                            //   // Process the returned data here
+                            //   print('Discount Item Map: $discItemMap');
+                            //   print('Discount: $discount');
+                            //   // Perform further actions with the data as needed
+                            // }
                           },
                           child: Container(
                             width: 120,

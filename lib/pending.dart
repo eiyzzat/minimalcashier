@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:minimal/test/login.dart';
 import 'package:minimal/test/staffItem.dart';
 import 'package:minimal/testingSelectStaff.dart';
 import '../api.dart';
@@ -338,8 +339,8 @@ class _EditItemState extends State<EditItem> {
                                                                   .cartOrderId,
                                                               otems:
                                                                   widget.otem,
-                                                              staff:
-                                                                  widget.staff,
+                                                              // staff:
+                                                              //     widget.staff,
                                                             ));
                                                       });
                                               if (selectedDetails != null) {
@@ -984,7 +985,7 @@ class _EditItemState extends State<EditItem> {
 
   Future<void> otemsStaff(
       List<Map<String, dynamic>> updatedStaffDetails) async {
-    var headers = {'token': token, 'Content-Type': 'application/json'};
+    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
 
     // Check if the widget is still mounted before proceeding
     if (!mounted) {
@@ -1032,7 +1033,7 @@ class _EditItemState extends State<EditItem> {
 
   Future<void> changeRemark(String otemID, String remarks) async {
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
     };
     var url =
         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/remarks';
@@ -1055,7 +1056,7 @@ class _EditItemState extends State<EditItem> {
 
   Future changeQty(String otemID, int quantity) async {
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
     };
     var url =
         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/quantity';
@@ -1092,7 +1093,7 @@ class _EditItemState extends State<EditItem> {
       return;
     }
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
     };
     var request = http.Request(
         'POST',
@@ -1383,12 +1384,14 @@ class StaffPart extends StatefulWidget {
       {Key? key,
       required this.cartOrderId,
       required this.otems,
-      required this.skus});
+      required this.skus,
+      required this.updateCart});
 
   final String cartOrderId;
 
   final List<dynamic> otems;
   final List<dynamic> skus;
+  final Function updateCart;
 
   @override
   State<StaffPart> createState() => _StaffPartState();
@@ -1651,6 +1654,7 @@ class _StaffPartState extends State<StaffPart> {
                       otems: widget.otems,
                       cartOrderId: widget.cartOrderId,
                       skus: widget.skus,
+                      updateCart: widget.updateCart,
                     ),
                   );
                 },
@@ -1672,6 +1676,7 @@ class SpecificStaff extends StatefulWidget {
       required this.otems,
       required this.skus,
       required this.cartOrderId,
+      required this.updateCart,
       Key? key});
 
   final String staffID;
@@ -1679,6 +1684,7 @@ class SpecificStaff extends StatefulWidget {
   final List<dynamic> otems;
   final List<dynamic> skus;
   final String cartOrderId;
+  final Function updateCart;
 
   @override
   State<SpecificStaff> createState() => _SpecificStaffState();
@@ -2155,7 +2161,7 @@ class _SpecificStaffState extends State<SpecificStaff> {
           bottom: 25.0,
         ),
         child: ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             List<Map<String, dynamic>> updatedStaffDetails = [];
             for (int i = 0; i < widget.staffDetails!.length; i++) {
               var staffDetail = widget.staffDetails![i];
@@ -2172,13 +2178,11 @@ class _SpecificStaffState extends State<SpecificStaff> {
               print("testtttttt");
               print(updatedStaffDetails);
             }
-            setState(() {
-              matchingValue();
-              //  updateDetails();
-              //  print("Updated Staff Details: $updatedStaffDetails");
-              // otemsStaff(otemOrderMap, updatedStaffDetails);
-              trialotemsStaff(selectedSkus, updatedStaffDetails);
-            });
+
+            matchingValue();
+            await trialotemsStaff(selectedSkus, updatedStaffDetails);
+           
+            setState(() {});
           },
           child: const Text('Apply'),
         ),
@@ -2217,7 +2221,7 @@ class _SpecificStaffState extends State<SpecificStaff> {
     print("Dalam otemStaff: $updatedStaffDetails");
     print("Dalam otemStaff: ${widget.cartOrderId}");
 
-    var headers = {'token': token, 'Content-Type': 'application/json'};
+    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
 
     for (var i = 0; i < otemIDs.length; i++) {
       // Check if the widget is still mounted before proceeding
@@ -2264,7 +2268,7 @@ class _SpecificStaffState extends State<SpecificStaff> {
 
     print("itemIDs: $itemIDs");
 
-    var headers = {'token': token, 'Content-Type': 'application/json'};
+    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
 
     for (var i = 0; i < itemIDs.length; i++) {
       // Check if the widget is still mounted before proceeding
@@ -2293,6 +2297,7 @@ class _SpecificStaffState extends State<SpecificStaff> {
       if (response.statusCode == 200) {
         print(await response.stream.bytesToString());
         if (mounted) {
+          widget.updateCart();
           Navigator.pop(context);
         }
       } else {

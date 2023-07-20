@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:minimal/test/login.dart';
 import 'dart:convert';
 
 import 'api.dart';
@@ -8,7 +9,7 @@ List<dynamic> staff = [];
 class APIFunctions {
   static Future getStaff() async {
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
     };
 
     var request =
@@ -34,7 +35,7 @@ class APIFunctions {
   static Future getDiscount() async {
     List<dynamic> discount = [];
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
     };
 
     var request = http.Request(
@@ -59,7 +60,7 @@ class APIFunctions {
 
   static Future fetchPending() async {
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
     };
 
     var request = http.Request(
@@ -85,7 +86,7 @@ class APIFunctions {
   static Future<void> fetchServices() async {
     List<dynamic> services = [];
     List<dynamic> sections = [];
-    var headers = {'token': token};
+    var headers = {'token': tokenGlobal};
     var request = http.Request(
         'GET', Uri.parse('https://menu.tunai.io/loyalty/type/1/sku?active=1'));
     request.bodyFields = {};

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:minimal/test/login.dart';
 import 'api.dart';
 import 'dart:convert';
 
@@ -24,6 +25,7 @@ int getProductTotalQuantity() {
     int quantity = sku['quantity'] ?? 0;
     totalQuantity += quantity;
   }
+
   return totalQuantity;
 }
 
@@ -32,8 +34,8 @@ double getProductTotalPrice() {
   for (var sku in selectedProduct.values) {
     double price = sku['selling']?.toDouble() ?? 0.0;
     totalPrice += price;
-    ptotalSellingPriceNotifier.value = totalPrice;
   }
+  ptotalSellingPriceNotifier.value = totalPrice;
   return ptotalSellingPriceNotifier.value;
 }
 
@@ -246,6 +248,37 @@ class _AllProductsState extends State<AllProducts> {
     });
   }
 
+  void increase(int skuID) {
+    var sku = products.firstWhere((sku) => sku['skuID'] == skuID);
+    int quantity = (selectedProduct[skuID]?['quantity'] ?? 0);
+    double sellingPrice = sku['selling']?.toDouble() ?? 0.0;
+
+    setState(() {
+      if (selectedProduct.containsKey(skuID)) {
+        quantity++;
+        selectedProduct[skuID]!['quantity'] = quantity;
+        print("quantity:$quantity");
+        selectedProduct[skuID]!['selling'] =
+            (selectedProduct[skuID]!['quantity']! * sellingPrice).toInt();
+      } else {
+        var sku = products.firstWhere((sku) => sku['skuID'] == skuID);
+
+        quantity++;
+        selectedProduct[skuID] = {
+          'selling': sku['selling'],
+          'quantity': quantity,
+          'skuID': skuID,
+        };
+        print("else:$quantity");
+      }
+      int totalQuantity =
+          getProductTotalQuantity(); // Calculate the total quantity
+      print("Total Quantity: $totalQuantity");
+      print(selectedProduct);
+      getProductTotalPrice();
+    });
+  }
+
   void decrement(int skuID) {
     setState(() {
       if (selectedProduct.containsKey(skuID)) {
@@ -265,9 +298,11 @@ class _AllProductsState extends State<AllProducts> {
       }
 
       // Calculate the total service quantity
-      int totalProductQuantity =selectedProduct.isEmpty ? 0 : selectedProduct.values
-          .map((product) => product['quantity'] ?? 0)
-          .reduce((a, b) => a + b);
+      int totalProductQuantity = selectedProduct.isEmpty
+          ? 0
+          : selectedProduct.values
+              .map((product) => product['quantity'] ?? 0)
+              .reduce((a, b) => a + b);
 
       // Update the value of totalServiceQuantityNotifier
       ptotalQuantityNotifier.value = totalProductQuantity;
@@ -277,7 +312,7 @@ class _AllProductsState extends State<AllProducts> {
   }
 
   Future<void> fetchProduct() async {
-    var headers = {'token': token};
+    var headers = {'token': tokenGlobal};
     var request = http.Request(
         'GET', Uri.parse('https://menu.tunai.io/loyalty/type/2/sku?active=1'));
     request.bodyFields = {};

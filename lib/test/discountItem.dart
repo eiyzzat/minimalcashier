@@ -19,10 +19,12 @@ class TrialSelectItemForDiscount extends StatefulWidget {
   final Function(Map<String, String>) onSkusSelected;
 
   @override
-  State<TrialSelectItemForDiscount> createState() => _TrialSelectItemForDiscountState();
+  State<TrialSelectItemForDiscount> createState() =>
+      _TrialSelectItemForDiscountState();
 }
 
-class _TrialSelectItemForDiscountState extends State<TrialSelectItemForDiscount> {
+class _TrialSelectItemForDiscountState
+    extends State<TrialSelectItemForDiscount> {
   Map<String, String> selectedSkus = {};
 
   bool okTapped = false;
@@ -60,7 +62,15 @@ class _TrialSelectItemForDiscountState extends State<TrialSelectItemForDiscount>
             "Select Items ${selectedItems.length}",
             style: const TextStyle(color: Colors.black),
           ),
-          leading: xIcon(),
+          leading: IconButton(
+            icon: Image.asset(
+              "lib/assets/Artboard 40.png",
+              height: 30,
+              width: 20,
+            ),
+            onPressed: () => Navigator.pop(context),
+            iconSize: 24,
+          ),
         ),
         body: SingleChildScrollView(
           child: Stack(
@@ -75,18 +85,6 @@ class _TrialSelectItemForDiscountState extends State<TrialSelectItemForDiscount>
           ),
         ),
         bottomNavigationBar: addButton());
-  }
-
-  Widget xIcon() {
-    return IconButton(
-      icon: Image.asset(
-        "lib/assets/Artboard 40.png",
-        height: 30,
-        width: 20,
-      ),
-      onPressed: () => Navigator.pop(context),
-      iconSize: 24,
-    );
   }
 
   Widget hi() {
@@ -106,12 +104,10 @@ class _TrialSelectItemForDiscountState extends State<TrialSelectItemForDiscount>
             itemCount: widget.otems.length,
             itemBuilder: (context, index) {
               final sku = widget.otems[index];
-              dynamic ssku = widget.skus.firstWhere((ssku) =>
-                                    ssku['skuID'] == widget.skus[index]['skuID']);
+              dynamic ssku = widget.skus.firstWhere(
+                  (ssku) => ssku['skuID'] == widget.skus[index]['skuID']);
               final item2 = ssku;
               final isSelected = selectedItems.contains(index);
-
-              print("ssku : $ssku");
 
               return GestureDetector(
                 onTap: () {
@@ -121,7 +117,7 @@ class _TrialSelectItemForDiscountState extends State<TrialSelectItemForDiscount>
                       selectedSkus.remove(index.toString());
                     } else {
                       selectedItems.add(index);
-                      
+
                       selectedSkus[index.toString()] = sku['otemID'].toString();
                       print("ssku : $ssku");
                     }

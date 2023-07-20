@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:minimal/pending.dart';
 import 'package:minimal/test/discountItem.dart';
+import 'package:minimal/test/login.dart';
 import 'package:minimal/testingSelectStaff.dart';
 import '../api.dart';
 import '../cart.dart';
@@ -15,31 +16,33 @@ class Discount extends StatefulWidget {
       required this.orderId,
       required this.otems,
       required this.skus,
-      required this.updateDiscount});
+      required this.updateDiscount,
+      required this.updateCart});
 
   final String orderId;
   List<dynamic> otems;
   final List<dynamic> skus;
   final Function updateDiscount;
+  final Function updateCart;
 
   @override
   State<Discount> createState() => _DiscountState();
 }
 
 class _DiscountState extends State<Discount> {
-  bool isCustomTapped = false;
-  bool okTapped = false;
-  bool showRefresh = false;
-
   int? selectedItemCount;
+  List<String> itemIDs = [];
 
   Map<String, String> selectedSkus = {};
   Map<String, Map<String, String>> discItemMap = {};
 
   TextEditingController discController = TextEditingController();
+  TextEditingController discountPercentageController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    print("widget skus: ${widget.skus}");
+    print("widget otem: ${widget.otems}");
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -51,7 +54,15 @@ class _DiscountState extends State<Discount> {
             'Discount',
             style: TextStyle(color: Colors.black),
           ),
-          leading: xIcon(),
+          leading: IconButton(
+            icon: Image.asset(
+              "lib/assets/Artboard 40.png",
+              height: 30,
+              width: 20,
+            ),
+            onPressed: () => Navigator.pop(context),
+            iconSize: 24,
+          ),
         ),
         body: Stack(
           children: [
@@ -64,18 +75,6 @@ class _DiscountState extends State<Discount> {
           ],
         ),
         bottomNavigationBar: addButton());
-  }
-
-  Widget xIcon() {
-    return IconButton(
-      icon: Image.asset(
-        "lib/assets/Artboard 40.png",
-        height: 30,
-        width: 20,
-      ),
-      onPressed: () => Navigator.pop(context),
-      iconSize: 24,
-    );
   }
 
   void handleSkusSelected(Map<String, String> skus) {
@@ -183,7 +182,7 @@ class _DiscountState extends State<Discount> {
                                 child: SizedBox(
                                   height: 29,
                                   child: TextField(
-                                    controller: discController,
+                                    controller: discountPercentageController,
                                     decoration: InputDecoration(
                                       labelText: 'Type here',
                                       floatingLabelBehavior:
@@ -256,11 +255,11 @@ class _DiscountState extends State<Discount> {
                       child: Container(
                         width: 20,
                         height: 20,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.blue,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.edit,
                           color: Colors.white,
                           size: 15,
@@ -330,13 +329,11 @@ class _DiscountState extends State<Discount> {
         child: ElevatedButton(
           onPressed: () async {
             matchingValue();
-            print("disc text: ${discController.text}");
-            String thediscount = discController.text;
+            // print("discount value: $discountValue");
             print(selectedSkus);
-            await trialchangeDiscount(selectedSkus, thediscount);
+            await trialchangeDiscount(selectedSkus);
+            widget.updateCart();
             Navigator.pop(context);
-            setState(() {});
-            
           },
           child: Text('Apply'),
         ),
@@ -351,32 +348,62 @@ class _DiscountState extends State<Discount> {
       'discount': discount,
       'selectedSkus': selectedSkus
     });
+    print("discItemMap: $discItemMap");
   }
 
   Future<void> trialchangeDiscount(
     Map<String, String> selectedSkus,
-    String discount,
   ) async {
-    List<String> itemIDs = selectedSkus.values.map((value) {
-      return value.split(':').last;
+    List<int> itemIDs = selectedSkus.values.map((value) {
+      return int.parse(value.split(':').last);
     }).toList();
+    int quantity = 0;
+    double price = 0.0;
 
     print("itemIDs: $itemIDs");
+    print("otemsssss: ${widget.otems}");
 
     for (var i = 0; i < itemIDs.length; i++) {
-      // Check if the widget is still mounted before proceeding
-      if (!mounted) {
-        return;
-      }
+      var matchingOtem = widget.otems.firstWhere(
+        (otem) => otem['otemID'] == itemIDs[i],
+        orElse: () => null,
+      );
+
+      quantity = matchingOtem['quantity'];
+      price = matchingOtem['price'].toDouble();
+
+      dynamic theItem = itemIDs[i];
+
+      print("theItem:$matchingOtem ");
+      print("qty:$quantity ");
+      print("price:$price ");
       var headers = {
-        'token': token,
+        'token': tokenGlobal,
       };
       var request = http.Request(
-          'POST',
-          Uri.parse(
-              'https://order.tunai.io/loyalty/order/${widget.orderId}/otems/${itemIDs[i]}/discount'));
+        'POST',
+        Uri.parse(
+          'https://order.tunai.io/loyalty/order/${widget.orderId}/otems/${itemIDs[i]}/discount',
+        ),
+      );
 
-      request.bodyFields = {'discount': discount};
+      String discountValue;
+      if (discController.text.isNotEmpty) {
+        // "Discount" container has a value
+        discountValue = discController.text;
+      } else if (discountPercentageController.text.isNotEmpty) {
+        // "Discount%" container has a value
+
+        double discountPercentage =
+            double.parse(discountPercentageController.text);
+        double totalPrice = (price * quantity) / 1.0;
+        double discount = totalPrice * discountPercentage / 100;
+        discountValue = discount.toStringAsFixed(2);
+      } else {
+        return; // Neither container has a value, do nothing
+      }
+
+      request.bodyFields = {'discount': discountValue};
       request.headers.addAll(headers);
 
       http.StreamedResponse response = await request.send();
@@ -388,8 +415,6 @@ class _DiscountState extends State<Discount> {
         print(response.reasonPhrase);
       }
     }
-
-    // Call the updateDiscount method to update the discount value in the cart page
     widget.updateDiscount();
   }
 }

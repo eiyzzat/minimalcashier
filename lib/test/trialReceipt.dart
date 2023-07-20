@@ -2,12 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:minimal/test/firstPage.dart';
 import '../api.dart';
 import 'dart:convert';
 
 import '../menu.dart';
 import '../orderPage.dart';
 import '../test/cashier.dart';
+import 'login.dart';
 
 class TrialPaymentReceipt extends StatefulWidget {
   const TrialPaymentReceipt(
@@ -300,7 +302,7 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
             onPressed: () {
               double sub = widget.receiptCalculateSubtotal;
 
-              print('Check dekat receipt: $storeServiceAndProduct');
+              // print('Check dekat receipt: $storeServiceAndProduct');
 
               completeOrder(sub);
               // complete(sub);
@@ -329,7 +331,7 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
     print('Check dekat receipt: ${widget.receiptCalculateSubtotal}');
     print('Check ORDDER ID: ${widget.cartOrderId}');
 
-    var headers = {'token': token, 'Content-Type': 'application/json'};
+    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
 
     var url = Uri.parse(
         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/complete');
@@ -390,9 +392,9 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
               child: const Text("Close"),
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => orderPage()),
+                  MaterialPageRoute(builder: (context) => FirstPage()),
                 );
               },
             ),
@@ -401,7 +403,7 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
       );
       // Navigator.push(
       //   context,
-      //   MaterialPageRoute(builder: (context) => orderPage()),
+      //   MaterialPageRoute(builder: (context) => FirstPage()),
       // );
     } else {
       print(response.reasonPhrase);

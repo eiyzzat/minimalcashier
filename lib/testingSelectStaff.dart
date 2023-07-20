@@ -11,13 +11,13 @@ class TestSelectStaff extends StatefulWidget {
   const TestSelectStaff(
       {Key? key,
       required this.cartOrderId,
-      required this.staff,
+      // required this.staff,
       required this.otems});
 
   final String cartOrderId;
 
   final List<dynamic> otems;
-  final List<dynamic> staff;
+  // final List<dynamic> staff;
 
   @override
   State<TestSelectStaff> createState() => _TestSelectStaffState();
@@ -49,7 +49,15 @@ class _TestSelectStaffState extends State<TestSelectStaff> {
             'Select Staff',
             style: TextStyle(color: Colors.black),
           ),
-          leading: xIcon(),
+          leading: IconButton(
+      icon: Image.asset(
+        "lib/assets/Artboard 40.png",
+        height: 30,
+        width: 20,
+      ),
+      onPressed: () => Navigator.pop(context),
+      iconSize: 24,
+    ),
         ),
         body: Stack(
           children: [
@@ -64,133 +72,126 @@ class _TestSelectStaffState extends State<TestSelectStaff> {
         bottomNavigationBar: addButton());
   }
 
-  Widget xIcon() {
-    return IconButton(
-      icon: Image.asset(
-        "lib/assets/Artboard 40.png",
-        height: 30,
-        width: 20,
-      ),
-      onPressed: () => Navigator.pop(context),
-      iconSize: 24,
-    );
-  }
+ 
 
   Widget hi() {
     print("masuk balik: $selectedStaffDetails");
     Future staffData = APIFunctions.getStaff();
     return Expanded(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  'Staff list',
-                  style: TextStyle(fontSize: 18, color: Colors.black),
-                ),
-              ],
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Staff list',
+                    style: TextStyle(fontSize: 18, color: Colors.black),
+                  ),
+                ],
+              ),
             ),
-          ),
-          FutureBuilder(
-            future: staffData,
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              } else {
-                return StatefulBuilder(
-                  builder: (context, setState) {
-                    return GridView.builder(
-                      shrinkWrap: true,
-                      itemCount: staff.length,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 10,
-                        childAspectRatio: 2.5,
-                      ),
-                      itemBuilder: (context, index) {
-                        var staffDetails = staff[index];
-                        var name = staffDetails['name'];
-                        String mobileNumber = staffDetails['mobile'].toString();
-                        String formattedNumber =
-                            '(${mobileNumber.substring(0, 4)}) ${mobileNumber.substring(4, 7)}-${mobileNumber.substring(7)}';
-
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (_selectedIndices.contains(index)) {
-                                _selectedIndices.remove(index);
-                              } else {
-                                _selectedIndices.add(index);
-                              }
-                              selectedStaffDetails = getStaffDetails();
-                              printSelectedStaffDetails();
-                            });
-                          },
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                color: _selectedIndices.contains(index)
-                                    ? Colors.blue
-                                    : Colors.transparent,
-                                width: 2.0,
+            FutureBuilder(
+              future: staffData,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else {
+                  return StatefulBuilder(
+                    builder: (context, setState) {
+                      return GridView.builder(
+                        physics: const ScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: staff.length,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: 2.5,
+                        ),
+                        itemBuilder: (context, index) {
+                          var staffDetails = staff[index];
+                          var name = staffDetails['name'];
+                          String mobileNumber = staffDetails['mobile'].toString();
+                          String formattedNumber =
+                              '(${mobileNumber.substring(0, 4)}) ${mobileNumber.substring(4, 7)}-${mobileNumber.substring(7)}';
+      
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                if (_selectedIndices.contains(index)) {
+                                  _selectedIndices.remove(index);
+                                } else {
+                                  _selectedIndices.add(index);
+                                }
+                                selectedStaffDetails = getStaffDetails();
+                                printSelectedStaffDetails();
+                              });
+                            },
+                            child: Card(
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  color: _selectedIndices.contains(index)
+                                      ? Colors.blue
+                                      : Colors.transparent,
+                                  width: 2.0,
+                                ),
+                                borderRadius: BorderRadius.circular(4.0),
                               ),
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Image(
-                                    image: NetworkImage(staff[index]['icon']),
-                                    width: 25,
-                                    height: 25,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          name,
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            color: Colors.black,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        SizedBox(height: 8),
-                                        Text(
-                                          formattedNumber,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.black,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Image(
+                                      image: NetworkImage(staff[index]['icon']),
+                                      width: 25,
+                                      height: 25,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            name,
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.black,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            formattedNumber,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.black,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                );
-              }
-            },
-          ),
-        ],
+                          );
+                        },
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -251,10 +252,14 @@ class _TestSelectStaffState extends State<TestSelectStaff> {
                 var staffID = staffDetails['staffID'];
                 var name = staffDetails['name'];
                 var image = staffDetails['icon'];
+                var efforts = staffDetails['efforts'];
+                 var handson= staffDetails['handson'];
                 selectedDetails.add({
                   'staffID': staffID,
                   'name': name,
                   'image': image,
+                  'effort': efforts,
+                  'handon': handson
                 });
                  print("Testing select staff: $selectedDetails");
               }

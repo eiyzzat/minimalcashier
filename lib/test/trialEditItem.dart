@@ -1,14 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:minimal/testingSelectStaff.dart';
 import '../api.dart';
 import '../cart.dart';
-import '../function.dart';
+// import '../function.dart';
+import 'login.dart';
 
 //showModalBottom for edit item in each service & product
 class TrialEditItem extends StatefulWidget {
-  const TrialEditItem(
+  TrialEditItem(
       {required this.cartOrderId,
       required this.otemOtemID,
       required this.otemSkuID,
@@ -18,35 +20,47 @@ class TrialEditItem extends StatefulWidget {
       required this.updateQuantity,
       required this.updateRemarks,
       required this.updateDiscount,
+      required this.updateCart,
       Key? key});
 
   final String cartOrderId;
   final String otemOtemID;
   final String otemSkuID;
   final List<dynamic> otem;
-  final List<dynamic> staff;
+  List<dynamic> staff;
   final Map<String, dynamic> itemData;
   final Function updateQuantity;
   final Function updateRemarks;
   final Function updateDiscount;
+  final Function updateCart;
 
   @override
   State<TrialEditItem> createState() => _TrialEditItemState();
 }
 
 class _TrialEditItemState extends State<TrialEditItem> {
-  TextEditingController remarksController = TextEditingController();
-  TextEditingController discController = TextEditingController();
+  var detail = {};
+
+  late TextEditingController remarksController =
+      TextEditingController(text: widget.itemData['remarks']);
+  late TextEditingController discController =
+      TextEditingController(text: widget.itemData['discount'].toString());
   TextEditingController discPercentageController = TextEditingController();
 
-  List<TextEditingController> effortControllers = [];
-  List<TextEditingController> handsOnControllers = [];
+  List<TextEditingController> testeffortController = [];
+  List<TextEditingController> testhandsonController = [];
+
+  TextEditingController effortController = TextEditingController();
+  TextEditingController handsoncontroller = TextEditingController();
 
   String paid = '';
 
   int? selectedStaffIndex;
   Map<String, Map<String, String>> otemOrderMap = {};
   List<Map<String, dynamic>> updatedStaffDetails = [];
+  List <dynamic> getData =[];
+
+  Map<String, dynamic> mapEdit = {};
 
   //untuksimpanselectedDetails
   List<dynamic> selectedStaffDetails = [];
@@ -56,14 +70,13 @@ class _TrialEditItemState extends State<TrialEditItem> {
   void initState() {
     super.initState();
     getStaffs();
-    // Future staffData = APIFunctions.getStaff();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: Colors.white,
         shape: const RoundedRectangleBorder(
@@ -73,7 +86,15 @@ class _TrialEditItemState extends State<TrialEditItem> {
           'Edit Item',
           style: TextStyle(color: Colors.black),
         ),
-        leading: xIcon(),
+        leading: IconButton(
+          icon: Image.asset(
+            "lib/assets/Artboard 40.png",
+            height: 30,
+            width: 20,
+          ),
+          onPressed: () => Navigator.pop(context),
+          iconSize: 24,
+        ),
       ),
       body: Stack(
         children: [
@@ -85,18 +106,6 @@ class _TrialEditItemState extends State<TrialEditItem> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget xIcon() {
-    return IconButton(
-      icon: Image.asset(
-        "lib/assets/Artboard 40.png",
-        height: 30,
-        width: 20,
-      ),
-      onPressed: () => Navigator.pop(context),
-      iconSize: 24,
     );
   }
 
@@ -115,393 +124,441 @@ class _TrialEditItemState extends State<TrialEditItem> {
   }
 
   Widget hi() {
-    print("masuk balik: $selectedStaffDetails");
-
+    print("masuk balik: $selectedStaffDetails"); //staffID,effort,handson
     print(widget.otem);
-    print(widget.staff);
+    // print(widget.staff); //staffID,name,mobile
 
     final totalSub = calSub(widget.itemData);
 
-    discController.text = widget.itemData['discount'].toString();
-    remarksController.text = widget.itemData['remarks'].toString();
+    double totalPrice = widget.itemData['price'].toDouble() *
+        double.parse(widget.itemData['quantity']);
+    double discountPercentage =
+        (widget.itemData['discount'] / totalPrice) * 100;
+    double afterDisc = discountPercentage.toDouble();
+
+    // discController.text = widget.itemData['discount'].toString();
+    discController.selection = TextSelection.fromPosition(
+        TextPosition(offset: discController.text.length));
+    discPercentageController.text = afterDisc.toString();
+    // remarksController.text = widget.itemData['remarks'];
+    // remarksController.selection = TextSelection.fromPosition(TextPosition(offset: remarksController.text.length));
 
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.max,
-        children: <Widget>[
-          Expanded(
-              child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              widget.itemData['itemName'].toString(),
-                              style: const TextStyle(
-                                  fontSize: 16, color: Colors.black),
-                            ),
-                            const SizedBox(width: 30),
-                            Row(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.max,
+          children: <Widget>[
+            Expanded(
+                child: Padding(
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(15.0),
-                                  ),
-                                  child: IconButton(
-                                    icon: Image.asset(
-                                      "lib/assets/Minus.png",
-                                      height: 20,
-                                      width: 20,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        int quantity = int.parse(widget
-                                                .itemData[
-                                            'quantity']); // Parse the quantity as an int
-                                        quantity--; // Increment the quantity by 1
-                                        widget.itemData['quantity'] = quantity
-                                            .toString(); // Convert the quantity back to a string
-                                        print(widget.itemData['quantity']);
-                                      });
-                                    },
-                                    iconSize: 24,
-                                  ),
-                                ),
                                 Text(
-                                  widget.itemData['quantity'].toString(),
+                                  widget.itemData['itemName'].toString(),
                                   style: const TextStyle(
                                       fontSize: 16, color: Colors.black),
                                 ),
-                                Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(15.0),
-                                  ),
-                                  child: IconButton(
-                                    icon: Image.asset(
-                                      "lib/assets/Plus.png",
-                                      height: 20,
-                                      width: 20,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        int quantity = int.parse(widget
-                                                .itemData[
-                                            'quantity']); // Parse the quantity as an int
-                                        quantity++; // Increment the quantity by 1
-                                        widget.itemData['quantity'] = quantity
-                                            .toString(); // Convert the quantity back to a string
-                                        print(widget.itemData['quantity']);
-                                      });
-                                    },
-                                    iconSize: 24,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 12.0),
-                                  child: Container(
-                                    width: 80,
-                                    height: 30,
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue,
-                                      borderRadius: BorderRadius.circular(5.0),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(width: 10),
-                                        Text(
-                                          widget.itemData['price']
-                                              .toStringAsFixed(2),
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.white),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(8.0),
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    "Others",
-                    style: TextStyle(fontSize: 16, color: Colors.black),
-                  ),
-                ),
-
-                Container(
-                  height: 165,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: SingleChildScrollView(
-                    physics: const ScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    "Staff",
-                                    style: TextStyle(
-                                        fontSize: 14, color: Colors.grey),
-                                  ),
-                                  const SizedBox(width: 30),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Container(
-                                        width: 25,
-                                        height: 25,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(15.0),
-                                        ),
-                                        child: IconButton(
-                                          icon: Image.asset(
-                                            "lib/assets/Plus.png",
-                                            height: 20,
-                                            width: 20,
-                                          ),
-                                          onPressed: () async {
-                                            final selectedDetails =
-                                                await showModalBottomSheet(
-                                                    context: context,
-                                                    isScrollControlled: true,
-                                                    shape: const RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius.vertical(
-                                                                top: Radius
-                                                                    .circular(
-                                                                        20))),
-                                                    builder:
-                                                        (BuildContext context) {
-                                                      return SizedBox(
-                                                          height: 750,
-                                                          child:
-                                                              TestSelectStaff(
-                                                            cartOrderId: widget
-                                                                .cartOrderId,
-                                                            otems: widget.otem,
-                                                            staff: widget.staff,
-                                                          ));
-                                                    });
-                                            if (selectedDetails != null) {
-                                              setState(() {
-                                                // Add the selected details to the selectedStaffDetails list
-                                                selectedStaffDetails
-                                                    .addAll(selectedDetails);
-                                                // Initialize the controllers for the newly added details
-                                                for (int i = 0;
-                                                    i < selectedDetails.length;
-                                                    i++) {
-                                                  effortControllers.add(
-                                                      TextEditingController());
-                                                  handsOnControllers.add(
-                                                      TextEditingController());
-                                                }
-                                                print(
-                                                    "Map baru: $selectedStaffDetails");
-                                              });
-                                            }
-                                          },
-                                          iconSize: 24,
-                                        ),
+                                const SizedBox(width: 30),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      width: 30,
+                                      height: 30,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(15.0),
                                       ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const Divider(),
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const ScrollPhysics(),
-                                itemCount: selectedStaffDetails.length,
-                                itemBuilder: (context, index) {
-                                  final detail = selectedStaffDetails[index];
-                                  print("Detail: $detail");
-                                  dynamic theStaff = staff.firstWhere(
-                                      (theStaff) =>
-                                          theStaff['staffID'] ==
-                                          detail['staffID']);
-                                  final displayStaffName = theStaff;
-                                  final theName = displayStaffName['name'];
-                                  // var effortText = effortControllers[index];
-                                  // var handsOnText =
-                                  //     handsOnControllers[index];
-
-                                  return Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
+                                      child: IconButton(
+                                        icon: Image.asset(
+                                          "lib/assets/Minus.png",
+                                          height: 20,
+                                          width: 20,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            int quantity = int.parse(widget
+                                                    .itemData[
+                                                'quantity']); // Parse the quantity as an int
+                                            quantity--; // Increment the quantity by 1
+                                            widget.itemData['quantity'] = quantity
+                                                .toString(); // Convert the quantity back to a string
+                                            print(widget.itemData['quantity']);
+                                          });
+                                        },
+                                        iconSize: 24,
+                                      ),
+                                    ),
+                                    Text(
+                                      widget.itemData['quantity'].toString(),
+                                      style: const TextStyle(
+                                          fontSize: 16, color: Colors.black),
+                                    ),
+                                    Container(
+                                      width: 30,
+                                      height: 30,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(15.0),
+                                      ),
+                                      child: IconButton(
+                                        icon: Image.asset(
+                                          "lib/assets/Plus.png",
+                                          height: 20,
+                                          width: 20,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            int quantity = int.parse(widget
+                                                    .itemData[
+                                                'quantity']); // Parse the quantity as an int
+                                            quantity++; // Increment the quantity by 1
+                                            widget.itemData['quantity'] = quantity
+                                                .toString(); // Convert the quantity back to a string
+                                            print(widget.itemData['quantity']);
+                                          });
+                                        },
+                                        iconSize: 24,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 12.0),
+                                      child: Container(
+                                        width: 80,
+                                        height: 30,
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue,
+                                          borderRadius:
+                                              BorderRadius.circular(5.0),
+                                        ),
                                         child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
-                                            
-                                            Image.asset(
-                                              "lib/assets/Artboard 40 copy 2.png",
-                                              width: 30,
-                                              height: 30,
-                                            ),
-                                            const SizedBox(width: 8),
+                                            SizedBox(width: 10),
                                             Text(
-                                              theName.toString(),
-                                              style:
-                                                  const TextStyle(fontSize: 12),
-                                            ),
-                                            Spacer(),
-                                            GestureDetector(
-                                              onTap: () {
-                                                setState(() {
-                                                  selectedStaffDetails
-                                                      .removeAt(index);
-                                                  print(
-                                                      'Latest: ${selectedStaffDetails}');
-                                                });
-                                              },
-                                              child: const Icon(
-                                                Icons.delete,
-                                                size: 15,
-                                                color: Colors.red,
-                                              ),
+                                              widget.itemData['price']
+                                                  .toStringAsFixed(2),
+                                              style: const TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.white),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          children: [
-                                            const SizedBox(width: 20),
-                                            Expanded(
-                                              child: GestureDetector(
-                                                onTap: () {
-                                                  setState(() {
-                                                    selectedStaffIndex = index;
-                                                  });
-                                                },
-                                                child: Container(
-                                                  width: 106,
-                                                  height: 57,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey[200],
-                                                    borderRadius:
-                                                        const BorderRadius.all(
-                                                            Radius.circular(8)),
-                                                  ),
-                                                  child: Column(
-                                                    children: [
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(8.0),
-                                                        child: Row(
-                                                          children: [
-                                                            const Text(
-                                                              'Effort ',
-                                                              style: TextStyle(
-                                                                fontSize: 12,
-                                                                color:
-                                                                    Colors.grey,
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              ),
-                                                            ),
-                                                            Container(
-                                                              width: 18,
-                                                              height: 18,
-                                                              decoration:
-                                                                  const BoxDecoration(
-                                                                shape: BoxShape
-                                                                    .circle,
-                                                                color:
-                                                                    Colors.blue,
-                                                              ),
-                                                              child: const Icon(
-                                                                Icons.edit,
-                                                                color: Colors
-                                                                    .white,
-                                                                size: 15,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                    .only(
-                                                                left: 8,
-                                                                bottom: 3),
-                                                        child: Row(
-                                                          children: [
-                                                            Expanded(
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      alignment: Alignment.centerLeft,
+                      child: const Text(
+                        "Others",
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ),
+                    //bahagian staff
+
+                    Container(
+                      height: 165,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: SingleChildScrollView(
+                        physics: const ScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        "Staff",
+                                        style: TextStyle(
+                                            fontSize: 14, color: Colors.grey),
+                                      ),
+                                      const SizedBox(width: 30),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Container(
+                                            width: 30,
+                                            height: 30,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(15.0),
+                                            ),
+                                            child: IconButton(
+                                              icon: Image.asset(
+                                                "lib/assets/Plus.png",
+                                                height: 30,
+                                                width: 30,
+                                              ),
+                                              onPressed: () async {
+                                                final selectedDetails =
+                                                    await showModalBottomSheet(
+                                                        context: context,
+                                                        isScrollControlled:
+                                                            true,
+                                                        shape: const RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius.vertical(
+                                                                    top: Radius
+                                                                        .circular(
+                                                                            20))),
+                                                        builder: (BuildContext
+                                                            context) {
+                                                          return SizedBox(
+                                                              height: 750,
                                                               child:
-                                                                  GestureDetector(
-                                                                onTap: () {
-                                                                  // Handle tap on Effort text
-                                                                },
+                                                                  TestSelectStaff(
+                                                                cartOrderId: widget
+                                                                    .cartOrderId,
+                                                                otems:
+                                                                    widget.otem,
+                                                                // staff: widget
+                                                                //     .staff,
+                                                              ));
+                                                        });
+                                                if (selectedDetails != null) {
+                                                  setState(() {
+                                                    // Add the selected details to the selectedStaffDetails list
+                                                    selectedStaffDetails.addAll(
+                                                        selectedDetails);
+                                                    // Initialize the controllers for the newly added details
+                                                    for (int i = 0;
+                                                        i <
+                                                            selectedStaffDetails
+                                                                .length;
+                                                        i++) {
+                                                      testeffortController.add(
+                                                          TextEditingController());
+                                                      testhandsonController.add(
+                                                          TextEditingController());
+                                                    }
+                                                    print(
+                                                        "Map baru: $selectedStaffDetails");
+                                                  });
+                                                }
+                                              },
+                                              iconSize: 24,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const Divider(),
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: const ScrollPhysics(),
+                                    itemCount: selectedStaffDetails.length,
+                                    itemBuilder: (context, index) {
+                                      detail = selectedStaffDetails[index];
+                                     
+                                      print("Detail: $detail");
+                                      int destaff = detail['staffID'];
+                                      dynamic theStaff =
+                                          widget.staff.firstWhere(
+                                        (theStaff) =>
+                                            theStaff['staffID'] == destaff,
+                                        orElse: () => null,
+                                      );
+
+                                      print("thestaff: $theStaff");
+
+                                      // final displayStaffName = theStaff;
+                                      final theName = theStaff['name'];
+                                      
+                                      effortController = TextEditingController(text: detail['effort'].toString());
+                                      handsoncontroller = TextEditingController(text: detail['handon'].toString());
+
+                                   
+                                      
+
+                                      // var effortText = effortControllers[index];
+                                      // var handsOnText =
+                                      //     handsOnControllers[index];
+
+                                      // late TextEditingController effortText =
+                                      //     TextEditingController(
+                                      //   text: detail['effort'].toString(),
+                                      // );
+
+                                      // effortText.selection =
+                                      //     TextSelection.fromPosition(
+                                      //         TextPosition(
+                                      //             offset:
+                                      //                 effortText.text.length));
+                                      // var handsOnText = TextEditingController(
+                                      //   text: detail['handon'] != null
+                                      //       ? detail['handon'].toString()
+                                      //       : '0',
+                                      // );
+
+                                      return Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              children: [
+                                                Image.asset(
+                                                  "lib/assets/Artboard 40 copy 2.png",
+                                                  width: 30,
+                                                  height: 30,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  theName.toString(),
+                                                  style: const TextStyle(
+                                                      fontSize: 12),
+                                                ),
+                                                Spacer(),
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      selectedStaffDetails
+                                                          .removeAt(index);
+                                                      print(
+                                                          'Latest: ${selectedStaffDetails}');
+                                                    });
+                                                  },
+                                                  child: const Icon(
+                                                    Icons.delete,
+                                                    size: 15,
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              children: [
+                                                const SizedBox(width: 20),
+                                                Expanded(
+                                                  child: Container(
+                                                    width: 106,
+                                                    height: 57,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.grey[200],
+                                                      borderRadius:
+                                                          const BorderRadius
+                                                                  .all(
+                                                              Radius.circular(
+                                                                  8)),
+                                                    ),
+                                                    child: Column(
+                                                      children: [
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: Row(
+                                                            children: [
+                                                              const Text(
+                                                                'Effort ',
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontSize:
+                                                                      12,
+                                                                  color: Colors
+                                                                      .grey,
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                ),
+                                                              ),
+                                                              Container(
+                                                                width: 18,
+                                                                height: 18,
+                                                                decoration:
+                                                                    const BoxDecoration(
+                                                                  shape: BoxShape
+                                                                      .circle,
+                                                                  color: Colors
+                                                                      .blue,
+                                                                ),
                                                                 child:
-                                                                    TextFormField(
-                                                                  initialValue:
-                                                                      detail['effort']
-                                                                          .toString(),
-                                                                  // controller:
-                                                                  //     effortText,
+                                                                    const Icon(
+                                                                  Icons.edit,
+                                                                  color: Colors
+                                                                      .white,
+                                                                  size: 15,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                      .only(
+                                                                  left: 8,
+                                                                  bottom: 3),
+                                                          child: Row(
+                                                            children: [
+                                                              Expanded(child: StatefulBuilder(builder:
+                                                                  (BuildContext
+                                                                          context,
+                                                                      StateSetter
+                                                                          setState) {
+                                                                return TextFormField(
+                                                              
+                                                                  controller:
+                                                                      effortController,
                                                                   style:
                                                                       const TextStyle(
                                                                     fontSize:
@@ -514,519 +571,519 @@ class _TrialEditItemState extends State<TrialEditItem> {
                                                                   ),
                                                                   keyboardType:
                                                                       TextInputType
-                                                                          .number,
-                                                                  onChanged:
-                                                                      (value) {
-                                                                    // Handle changes in Effort value
-                                                                  },
+                                                                          .text,
+                                                                  inputFormatters: [
+                                                                    FilteringTextInputFormatter
+                                                                        .digitsOnly,
+                                                                  ],
+                                                                  
                                                                   decoration:
+                                                                                                              
                                                                       const InputDecoration(
                                                                     isDense:
                                                                         true,
                                                                     contentPadding:
                                                                         EdgeInsets
                                                                             .zero,
-                                                                    border:
-                                                                        InputBorder
-                                                                            .none,
+                                                                    border: InputBorder
+                                                                        .none,
                                                                   ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
+                                                                   
+                                                                );
+                                                              })),
+                                                            ],
+                                                          ),
                                                         ),
-                                                      ),
-                                                    ],
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Expanded(
-                                              child: GestureDetector(
-                                                onTap: () {
-                                                  setState(() {
-                                                    selectedStaffIndex = index;
-                                                  });
-                                                },
-                                                child: Container(
-                                                  width: 106,
-                                                  height: 57,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey[200],
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                            Radius.circular(8)),
-                                                  ),
-                                                  child: Column(
-                                                    children: [
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(8.0),
-                                                        child: Row(
-                                                          children: [
-                                                            Text(
-                                                              'Hands on ',
-                                                              style: TextStyle(
-                                                                fontSize: 12,
-                                                                color:
-                                                                    Colors.grey,
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              ),
-                                                            ),
-                                                            Container(
-                                                              width: 18,
-                                                              height: 18,
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                shape: BoxShape
-                                                                    .circle,
-                                                                color:
-                                                                    Colors.blue,
-                                                              ),
-                                                              child: Icon(
-                                                                Icons.edit,
-                                                                color: Colors
-                                                                    .white,
-                                                                size: 15,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
+                                                const SizedBox(width: 10),
+                                                Expanded(
+                                                  child: GestureDetector(
+                                                    onTap: () {
+                                                      setState(() {
+                                                        selectedStaffIndex =
+                                                            index;
+                                                      });
+                                                    },
+                                                    child: Container(
+                                                      width: 106,
+                                                      height: 57,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.grey[200],
+                                                        borderRadius:
+                                                            const BorderRadius
+                                                                    .all(
+                                                                Radius.circular(
+                                                                    8)),
                                                       ),
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                    .only(
-                                                                left: 8,
-                                                                bottom: 3),
-                                                        child: Row(
-                                                          children: [
-                                                            Expanded(
-                                                              child:
-                                                                  GestureDetector(
-                                                                onTap: () {
-                                                                  // Handle tap on Hands on text
-                                                                },
-                                                                child:
-                                                                    TextFormField(
-                                                                  initialValue:
-                                                                      detail['handon']
-                                                                          .toString(),
-                                                                  // controller:
-                                                                  //     handsOnText,
+                                                      child: Column(
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(8.0),
+                                                            child: Row(
+                                                              children: [
+                                                                const Text(
+                                                                  'Hands on ',
                                                                   style:
                                                                       TextStyle(
                                                                     fontSize:
-                                                                        14,
+                                                                        12,
                                                                     color: Colors
-                                                                        .black,
+                                                                        .grey,
                                                                     overflow:
                                                                         TextOverflow
                                                                             .ellipsis,
                                                                   ),
-                                                                  keyboardType:
-                                                                      TextInputType
-                                                                          .number,
-                                                                  onChanged:
-                                                                      (value) {
-                                                                    // Handle changes in Hands on value
-                                                                    setState(
-                                                                        () {
-                                                                      try {
-                                                                        detail['handon'] =
-                                                                            int.parse(value); // Update the 'handon' value
-                                                                      } catch (e) {
-                                                                        // Handle parsing error (e.g., display an error message)
-                                                                        print(
-                                                                            'Error: $e');
-                                                                        // You can set a fallback value or display an error message to the user
-                                                                        detail['handon'] =
-                                                                            0; // Fallback value
-                                                                      }
-                                                                    });
-                                                                  },
+                                                                ),
+                                                                Container(
+                                                                  width: 18,
+                                                                  height: 18,
                                                                   decoration:
-                                                                      InputDecoration(
-                                                                    isDense:
-                                                                        true,
-                                                                    contentPadding:
-                                                                        EdgeInsets
-                                                                            .zero,
-                                                                    border:
-                                                                        InputBorder
-                                                                            .none,
+                                                                      BoxDecoration(
+                                                                    shape: BoxShape
+                                                                        .circle,
+                                                                    color: Colors
+                                                                        .blue,
+                                                                  ),
+                                                                  child: Icon(
+                                                                    Icons.edit,
+                                                                    color: Colors
+                                                                        .white,
+                                                                    size: 15,
                                                                   ),
                                                                 ),
-                                                              ),
+                                                              ],
                                                             ),
-                                                          ],
-                                                        ),
+                                                          ),
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                        .only(
+                                                                    left: 8,
+                                                                    bottom: 3),
+                                                            child: Row(
+                                                              children: [
+                                                                Expanded(
+                                                                  child: StatefulBuilder(builder: (BuildContext
+                                                                          context,
+                                                                      StateSetter
+                                                                          setState) {
+                                                                    return TextFormField(
+                                                                      controller: handsoncontroller,
+                                                                      style:
+                                                                          TextStyle(
+                                                                        fontSize:
+                                                                            14,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                      ),
+                                                                      keyboardType:
+                                                                          TextInputType
+                                                                              .text,
+                                                                      inputFormatters: [
+                                                                        FilteringTextInputFormatter
+                                                                            .digitsOnly,
+                                                                      ],
+                                                                      onChanged:
+                                                                          (value) {
+                                                                        setState(
+                                                                            () {
+                                                                         
+                                                                          detail['handon'] =value;
+                                                                        });
+                                                                      },
+                                                                      
+                                                                      decoration:
+                                                                          InputDecoration(
+                                                                        isDense:
+                                                                            true,
+                                                                        contentPadding:
+                                                                            EdgeInsets.zero,
+                                                                        border:
+                                                                            InputBorder.none,
+                                                                      ),
+                                                                    );
+                                                                  }),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ),
-                                                    ],
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
+                                              ],
                                             ),
-                                          ],
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                  Visibility(
+                                    visible: selectedStaffDetails.isEmpty,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        "No staff selected",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Container remarks
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Container(
+                        width: double.infinity,
+                        height: 65,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Remarks",
+                                    style: TextStyle(
+                                        fontSize: 14, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: SizedBox(
+                                          height: 29,
+                                          child: TextField(
+                                            controller: remarksController,
+                                            decoration: InputDecoration(
+                                              // labelText:
+                                              //     widget.itemData['remarks'] != null
+                                              //         ? remarksController.text
+                                              //         : 'Type here',
+                                              floatingLabelBehavior:
+                                                  FloatingLabelBehavior.never,
+                                              border: InputBorder.none,
+                                            ),
+                                            keyboardType: TextInputType.text,
+                                            // onSubmitted: (text){
+                                            //   setState(() {
+                                            //     remarksController.text = text;
+                                            //   });
+                                            // },
+                                          ),
                                         ),
                                       ),
                                     ],
-                                  );
-                                },
-                              ),
-                              Visibility(
-                                visible: selectedStaffDetails.isEmpty,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    "No staff selected",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey,
-                                    ),
                                   ),
-                                ),
-                              )
-                            ],
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            "Adjustment",
+                            style: TextStyle(fontSize: 16, color: Colors.black),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ),
-                // Container remarks
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Container(
-                    width: double.infinity,
-                    height: 65,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    //container discount
+                    Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Remarks",
-                                style:
-                                    TextStyle(fontSize: 14, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: SizedBox(
-                                      height: 29,
-                                      child: TextField(
-                                        controller: remarksController,
-                                        decoration: InputDecoration(
-                                          labelText:
-                                              widget.itemData['remarks'] != null
-                                                  ? widget.itemData['remarks']
-                                                      .toString()
-                                                  : 'Type here',
-                                          floatingLabelBehavior:
-                                              FloatingLabelBehavior.never,
-                                          border: InputBorder.none,
-                                        ),
-                                        keyboardType: TextInputType.text,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Container(
+                                width: double.infinity,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "Discount",
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey),
+                                          ),
+                                        ],
                                       ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: SizedBox(
+                                                  height: 29,
+                                                  child: TextField(
+                                                    controller: discController,
+                                                    decoration: InputDecoration(
+                                                      // labelText: widget.itemData['discount'] != null
+                                                      //     ? widget.itemData['discount'].toString()
+                                                      //     : 'Type here',
+                                                      floatingLabelBehavior:
+                                                          FloatingLabelBehavior
+                                                              .never,
+                                                      border: InputBorder.none,
+                                                    ),
+                                                    keyboardType: TextInputType
+                                                        .text, // Use text input type
+                                                    inputFormatters: [
+                                                      FilteringTextInputFormatter
+                                                          .digitsOnly, // Restrict input to digits only
+                                                    ],
+                                                    // onChanged: inDiscount,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Container(
+                                width: double.infinity,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "Discount%",
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: SizedBox(
+                                                  height: 29,
+                                                  child: TextField(
+                                                    controller:
+                                                        discPercentageController,
+                                                    decoration: InputDecoration(
+                                                      labelText: '0.00',
+                                                      floatingLabelBehavior:
+                                                          FloatingLabelBehavior
+                                                              .never,
+                                                      border: InputBorder.none,
+                                                    ),
+                                                    keyboardType:
+                                                        TextInputType.number,
+                                                    enabled:
+                                                        false, // Disable editing
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Container(
+                        width: double.infinity,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Total",
+                                    style: TextStyle(
+                                        fontSize: 14, color: Colors.grey),
+                                  ),
+                                  Text(
+                                    totalSub.toStringAsFixed(2),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
                                     ),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  int newquantity =
+                                      int.parse(widget.itemData['quantity']);
 
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "Adjustment",
-                        style: TextStyle(fontSize: 16, color: Colors.black),
+                                  await changeQty(widget.otemOtemID.toString(),
+                                      newquantity);
+
+                                  widget.updateCart();
+
+                                  String remarks = remarksController.text;
+                                  changeRemark(
+                                      widget.otemOtemID.toString(), remarks);
+
+                                  String discountText = discController.text;
+                                  double discount =
+                                      0.0; // Default value if the input is empty
+
+                                  if (discountText.isNotEmpty) {
+                                    discount =
+                                        double.tryParse(discountText) ?? 0.0;
+                                  }
+                                  changeDiscount(discount);
+
+                                  updateDetails();
+                                  await otemsStaff(updatedStaffDetails);
+                                  widget.updateCart();
+
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("Save Changes"),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
-                //container discount
-                Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Container(
-                            width: double.infinity,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "Discount",
-                                        style: TextStyle(
-                                            fontSize: 14, color: Colors.grey),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: SizedBox(
-                                              height: 29,
-                                              child: TextField(
-                                                controller: discController,
-                                                decoration: InputDecoration(
-                                                  labelText: widget.itemData[
-                                                              'discount'] !=
-                                                          null
-                                                      ? widget
-                                                          .itemData['discount']
-                                                          .toString()
-                                                      : 'Type here',
-                                                  floatingLabelBehavior:
-                                                      FloatingLabelBehavior
-                                                          .never,
-                                                  border: InputBorder.none,
-                                                ),
-                                                keyboardType:
-                                                    TextInputType.number,
-                                                onChanged: (value) {
-                                                  // Update the value when the text changes
-                                                  // double discValue =
-                                                  //     double.tryParse(value) ??
-                                                  //         0.0;
-                                                  // print(discValue);
-
-                                                  // int discountPercentage =
-                                                  //     ((totalSub -
-                                                  //                 (totalSub -
-                                                  //                     discValue)) *
-                                                  //             100)
-                                                  //         .toInt();
-                                                  // discPercentageController
-                                                  //         .text =
-                                                  //     discountPercentage
-                                                  //         .toString(); // Update the discPercentageController value
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Container(
-                            width: double.infinity,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "Discount%",
-                                        style: TextStyle(
-                                            fontSize: 14, color: Colors.grey),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: SizedBox(
-                                              height: 29,
-                                              child: TextField(
-                                                controller:
-                                                    discPercentageController,
-                                                decoration: InputDecoration(
-                                                  labelText: '0.00',
-                                                  floatingLabelBehavior:
-                                                      FloatingLabelBehavior
-                                                          .never,
-                                                  border: InputBorder.none,
-                                                ),
-                                                keyboardType:
-                                                    TextInputType.number,
-                                                enabled:
-                                                    false, // Disable editing
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Container(
-                    width: double.infinity,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Total",
-                                style:
-                                    TextStyle(fontSize: 14, color: Colors.grey),
-                              ),
-                              Text(
-                                totalSub.toStringAsFixed(2),
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              int newquantity =
-                                  int.parse(widget.itemData['quantity']);
-
-                              changeQty(
-                                  widget.otemOtemID.toString(), newquantity);
-
-                              String remarks = remarksController.text;
-                              changeRemark(
-                                  widget.otemOtemID.toString(), remarks);
-
-                              String discountText = discController.text;
-                              double discount =
-                                  0.0; // Default value if the input is empty
-
-                              if (discountText.isNotEmpty) {
-                                discount = double.tryParse(discountText) ?? 0.0;
-                              }
-                              changeDiscount(discount);
-
-                              updateDetails();
-                              otemsStaff(updatedStaffDetails);
-
-                              Navigator.pop(context);
-                            },
-                            child: const Text("Save Changes"),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ))
-        ],
+              ),
+            ))
+          ],
+        ),
       ),
     );
+  }
+  
+
+  void inDiscount(String value) {
+    setState(() {
+      widget.itemData['discount'] = int.tryParse(value) ?? 0;
+    });
   }
 
   void updateDetails() {
     // Create a new list to store the updated staff details
     updatedStaffDetails = [];
+    print("dalam update: $selectedStaffDetails");
     // Iterate over the existing staff details and update the effort and hands-on values
     for (int i = 0; i < selectedStaffDetails.length; i++) {
       var staffDetail = selectedStaffDetails[i];
-      var effortText = effortControllers[i];
-      var handsOnText = handsOnControllers[i];
+      // var effortText = effortControllers[i];
+      // var handsOnText = handsOnControllers[i];
       var updatedStaffDetail = {
         'staffID': staffDetail['staffID'],
         'name': staffDetail['name'],
         'image': staffDetail['image'],
-        'effort': effortText.text,
-        'handson': handsOnText.text,
+        'effort': staffDetail['effort'], 
+        // 'effort': effortText.text,
+        // 'handson': handsoncontroller.text,
       };
       updatedStaffDetails.add(updatedStaffDetail);
     }
 
-    print("Updated Staff Details: $updatedStaffDetails");
+   
+    
   }
 
   Future<void> otemsStaff(
-      List<Map<String, dynamic>> updatedStaffDetails) async {
-    var headers = {'token': token, 'Content-Type': 'application/json'};
+      List<Map<String, dynamic>> updatedStaffDetails
+      ) async {
+    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+
+    print("dalam otem: $updatedStaffDetails");
 
     // Check if the widget is still mounted before proceeding
     if (!mounted) {
@@ -1043,11 +1100,11 @@ class _TrialEditItemState extends State<TrialEditItem> {
     );
 
     request.body = json.encode({
-      "staffs": selectedStaffDetails.map((staff) {
+      "staffs": updatedStaffDetails.map((staff) {
         return {
           "staffID": staff['staffID'],
           "image": staff['image'],
-          "efforts": staff['efforts'],
+          "efforts": staff['effort'],
           "handson": staff['handson'],
         };
       }).toList(),
@@ -1056,7 +1113,7 @@ class _TrialEditItemState extends State<TrialEditItem> {
 
     http.StreamedResponse response = await request.send();
 
-    print("dalam api: $selectedStaffDetails");
+    print("dalam api: $updatedStaffDetails");
 
     if (response.statusCode == 200) {
       print(await response.stream.bytesToString());
@@ -1069,12 +1126,13 @@ class _TrialEditItemState extends State<TrialEditItem> {
   double calSub(Map<String, dynamic> itemData) {
     final int quantity = int.parse(itemData['quantity'].toString());
     final double price = double.parse(itemData['price'].toString());
-    return quantity * price;
+    final double disc = double.parse(itemData['discount'].toString());
+    return (quantity * price) - disc;
   }
 
   Future changeQty(String otemID, int quantity) async {
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
     };
     var url =
         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/quantity';
@@ -1104,7 +1162,7 @@ class _TrialEditItemState extends State<TrialEditItem> {
 
   Future<void> changeRemark(String otemID, String remarks) async {
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
     };
     var url =
         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/remarks';
@@ -1134,7 +1192,7 @@ class _TrialEditItemState extends State<TrialEditItem> {
       return;
     }
     var headers = {
-      'token': token,
+      'token': tokenGlobal,
     };
     var request = http.Request(
         'POST',

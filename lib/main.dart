@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:minimal/test/firstPage.dart';
+import 'package:minimal/test/login.dart';
 
 
 import 'orderPage.dart';
+
 
 
 void main() {
@@ -20,7 +23,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: orderPage()
+      home: LoginPage()
     );
   }
 }
