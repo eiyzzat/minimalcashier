@@ -1,10 +1,5 @@
-import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:minimal/testingSelectStaff.dart';
-import '../api.dart';
-import '../cart.dart';
-import '../function.dart';
 
 class TrialSelectItemForDiscount extends StatefulWidget {
   const TrialSelectItemForDiscount({
@@ -29,11 +24,11 @@ class _TrialSelectItemForDiscountState
 
   bool okTapped = false;
   bool showRefresh = false;
+  bool isAllItemsSelected = false;
 
   int? selectedStaffIndex;
   Set<int> selectedItems = {};
   int selectedItemCount = 0;
-  bool isAllItemsSelected = false;
 
   void updateSelectedItems(Set<int> updatedSelectedItems) {
     setState(() {
@@ -58,9 +53,10 @@ class _TrialSelectItemForDiscountState
           centerTitle: true,
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-          title: Text(
-            "Select Items ${selectedItems.length}",
-            style: const TextStyle(color: Colors.black),
+          title: const Text(
+            "Select Items",
+            //  "Select Items ${selectedItems.length}",
+            style: TextStyle(color: Colors.black),
           ),
           leading: IconButton(
             icon: Image.asset(
@@ -71,129 +67,161 @@ class _TrialSelectItemForDiscountState
             onPressed: () => Navigator.pop(context),
             iconSize: 24,
           ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // 2. Implement the logic to select/deselect all items here.
+                setState(() {
+                  if (isAllItemsSelected) {
+                    // If all items are already selected, then deselect all items.
+                    selectedItems.clear();
+                    selectedSkus.clear();
+                  } else {
+                    // If not all items are selected, then select all items.
+                    for (int index = 0; index < widget.otems.length; index++) {
+                      selectedItems.add(index);
+                      final sku = widget.otems[index];
+                      selectedSkus[index.toString()] = sku['otemID'].toString();
+                    }
+                  }
+                  // 3. Update the isAllItemsSelected variable.
+                  isAllItemsSelected = !isAllItemsSelected;
+                });
+              },
+              child: Text(
+                isAllItemsSelected ? "Deselect all" : "Select all",
+                style: TextStyle(color: Colors.blue, fontSize: 14),
+              ),
+            ),
+          ],
         ),
-        body: SingleChildScrollView(
-          child: Stack(
-            children: [
-              Container(
-                color: Colors.grey[200],
-              ),
-              Column(
-                children: [hi()],
-              ),
-            ],
-          ),
+        body: Stack(
+          children: [
+            Container(color: Colors.grey[200]),
+            Column(
+              children: [hi()],
+            ),
+          ],
         ),
         bottomNavigationBar: addButton());
   }
 
   Widget hi() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1.9,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-            ),
-            itemCount: widget.otems.length,
-            itemBuilder: (context, index) {
-              final sku = widget.otems[index];
-              dynamic ssku = widget.skus.firstWhere(
-                  (ssku) => ssku['skuID'] == widget.skus[index]['skuID']);
-              final item2 = ssku;
-              final isSelected = selectedItems.contains(index);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 2.3,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemCount: widget.otems.length,
+              itemBuilder: (context, index) {
+                final sku = widget.otems[index];
+                print("lepas final: ${widget.otems}");
+                print("sku: $sku");
+                dynamic ssku = widget.skus
+                    .firstWhere((ssku) => ssku['skuID'] == sku['skuID']);
+                final item2 = ssku;
+                final isSelected = selectedItems.contains(index);
 
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (selectedItems.contains(index)) {
-                      selectedItems.remove(index);
-                      selectedSkus.remove(index.toString());
-                    } else {
-                      selectedItems.add(index);
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      if (selectedItems.contains(index)) {
+                        selectedItems.remove(index);
+                        selectedSkus.remove(index.toString());
+                      } else {
+                        selectedItems.add(index);
 
-                      selectedSkus[index.toString()] = sku['otemID'].toString();
-                      print("ssku : $ssku");
-                    }
-                    print(selectedSkus);
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.all(10),
-                  child: Stack(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      item2['name'],
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.black,
+                        selectedSkus[index.toString()] =
+                            sku['otemID'].toString();
+                        print("ssku : $ssku");
+                      }
+                      print(selectedSkus);
+                    });
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    child: Stack(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        item2['name'],
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black,
+                                        ),
                                       ),
+                                    ],
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          '${item2['selling'].toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      '${item2['selling'].toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      if (isSelected)
-                        Positioned(
-                          bottom: 10,
-                          right: 10,
-                          child: Container(
-                            width: 20,
-                            height: 20,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.blue,
-                            ),
-                            child: Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
+                          ],
                         ),
-                    ],
+                        if (isSelected)
+                          Positioned(
+                            bottom: 10,
+                            right: 10,
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.blue,
+                              ),
+                              child: const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -205,16 +233,36 @@ class _TrialSelectItemForDiscountState
           top: 8.0,
           left: 8.0,
           right: 8.0,
-          bottom: 25.0,
+          bottom: 30.0,
         ),
         child: ElevatedButton(
           onPressed: () {
             setState(() {});
             widget.onSkusSelected(selectedSkus);
-            Navigator.pop(context, selectedItems.length);
-            print('Pass total selected container: $selectedItems');
+            final int totalSelected = selectedItems.length;
+            final int totalItems = widget.otems.length;
+            final String selectedItemText =
+                totalSelected == totalItems ? "All" : "$totalSelected";
+
+            // print("hhhh: $selectedItemText");
+
+            Navigator.pop(context, selectedItemText);
+            //   Navigator.pop(context, selectedItems.length);
+            // print('Pass total selected container: $selectedItems');
           },
-          child: Text('Ok'),
+          style: ElevatedButton.styleFrom(
+          // Set the desired height and width here
+          fixedSize: Size(340, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ), // Change the values according to your needs
+        ),
+          
+          child: const Text('OK', style: TextStyle(
+            fontSize: 18,
+            fontFamily: 'SFProDisplay', // Use the specified font family
+            fontWeight: FontWeight.normal, // You can also adjust the font weight
+          ),),
         ),
       ),
     );

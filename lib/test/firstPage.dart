@@ -9,11 +9,12 @@ import 'dart:convert';
 import '../allProducts.dart';
 import '../allServices.dart';
 import '../ordersPending.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'allProductsServices.dart';
 
 Map<String, Map<int, dynamic>> storeServiceAndProduct = {
   "services": selectedService,
   "products": selectedProduct,
+  "all": selectedProductServices,
 };
 
 class FirstPage extends StatefulWidget {
@@ -26,17 +27,18 @@ class FirstPage extends StatefulWidget {
 }
 
 class _FirstPage extends State<FirstPage> {
-  //both store data from api
-  // List<dynamic> menuOrder = [];
-  // List<dynamic> menuMember = [];
-
   List<dynamic> orders = [];
   List<dynamic> members = [];
+  List<dynamic> otem = [];
   List<dynamic> thelatestorder = [];
 
   Map<String, dynamic> baru = {};
 
   int count = 0;
+
+  int nakDisplayQuantity = 0;
+  double totalSubtotal = 0.0;
+  String orderid = '';
 
   Map<String, dynamic> latestOrder = {};
   dynamic selectedOrder;
@@ -49,18 +51,59 @@ class _FirstPage extends State<FirstPage> {
   bool isExpanded2 = false;
   bool isExpanded3 = false;
 
+  TextEditingController searchController = TextEditingController();
+  String searchText = '';
+
+  // double _searchWidth = 100.0;
+  // double _serviceWidth = 100.0;
+  // double _productWidth = 100.0;
+
+  // void _toggleSearchExpanded() {
+  //   setState(() {
+  //     final temp = _searchWidth;
+  //     _searchWidth = _serviceWidth;
+  //     _serviceWidth = _productWidth;
+  //     _productWidth = temp;
+  //   });
+  // }
+
+  // void _toggleServiceExpanded() {
+  //   setState(() {
+  //     final temp = _serviceWidth;
+  //     _serviceWidth = _searchWidth;
+  //     _searchWidth = _productWidth;
+  //     _productWidth = temp;
+  //   });
+  // }
+
+  // void _toggleProductExpanded() {
+  //   setState(() {
+  //     final temp = _productWidth;
+  //     _productWidth = _searchWidth;
+  //     _searchWidth = _serviceWidth;
+  //     _serviceWidth = temp;
+  //   });
+  // }
+
   @override
   void initState() {
     super.initState();
-    fetchPendingAndMembers();
-    // theorder();
-    // getMember();
+    initializedData();
   }
 
   void reset() {
     selectedService.clear();
     selectedProduct.clear();
     selectedItems.clear();
+    selectedProductServices.clear();
+  }
+
+  void initializedData() async {
+    await fetchPendingAndMembers();
+    // await getLatest();
+    setState(() {
+      fetchData();
+    });
   }
 
   @override
@@ -83,11 +126,11 @@ class _FirstPage extends State<FirstPage> {
               context: context,
               builder: (BuildContext context) {
                 return CupertinoAlertDialog(
-                  title: Text('Logout'),
-                  content: Text('Are you sure you want to logout?'),
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
                   actions: <Widget>[
                     CupertinoDialogAction(
-                      child: Text('Cancel'),
+                      child: const Text('Cancel'),
                       onPressed: () {
                         Navigator.of(context).pop(); // Close the dialog
                       },
@@ -129,21 +172,10 @@ class _FirstPage extends State<FirstPage> {
                           getLatest: getLatest,
                           updateFirst: updateFirst,
                           onOrderSelected: updateSelectedOrder,
+                          fetchData: fetchData,
                         ));
                   },
                 );
-                // if (latestOrder  != null) {
-                //   setState(() {
-                //     // baru = menuawal;
-                //     menuContainer(latestOrder);
-                //   });
-
-                //   // print("baru: $baru");
-                //    print("latestOrder: $latestOrder");
-                //   print("dalamapi: $menuMember");
-                // }
-
-                // print("dekat show: $latestOrder");
               })
         ],
       ),
@@ -154,12 +186,196 @@ class _FirstPage extends State<FirstPage> {
           ),
           Column(
             children: [
-              // testContainer(),
               menuContainer(),
-              folder(),
+              Visibility(
+                visible: latestOrder
+                    .isNotEmpty, // Show the folder() widget if latestOrder is not empty
+                child: folder(),
+              ),
+              Visibility(
+                visible: !latestOrder
+                    .isNotEmpty, // Show the text if latestOrder is empty
+                child: Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "No Orders yet!",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 22,
+                            color: Colors.black,
+                          ),
+                        ),
+                        Text(
+                          "Once you do, orders will",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 17,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        Text(
+                          "appear here",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 17,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
-          bottomContainertest()
+          Positioned(
+            bottom: 0,
+            child: Container(
+              height: 70,
+              width: MediaQuery.of(context).size.width,
+              color: Colors.white,
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: latestOrder.isEmpty
+                        ? null
+                        : () {
+                            _showDeleteConfirmationDialog(context);
+                          },
+                    child: Container(
+                      // Set any desired properties for the container
+                      width: 24,
+                      height: 24,
+                      color: Colors.white,
+                      margin: const EdgeInsets.only(
+                          left: 30,
+                          bottom:
+                              2),
+
+                      child: Image.asset(
+                        'lib/assets/Trash.png',
+                        width: 24,
+                        height: 24,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: ValueListenableBuilder<int>(
+                        //service quantity
+                        valueListenable: totalQuantityNotifier,
+                        builder: (BuildContext context, int totalItems,
+                            Widget? child) {
+                          return ValueListenableBuilder<double>(
+                            //service price
+                            valueListenable: totalSellingPriceNotifier,
+                            builder: (BuildContext context, double totalPrice,
+                                Widget? child) {
+                              return ValueListenableBuilder<int>(
+                                //product quantity
+                                valueListenable: ptotalQuantityNotifier,
+                                builder: (BuildContext context, int pItems,
+                                    Widget? child) {
+                                  return ValueListenableBuilder<double>(
+                                    //product price
+                                    valueListenable: ptotalSellingPriceNotifier,
+                                    builder: (BuildContext context,
+                                        double ptotalPrice, Widget? child) {
+                                      return ValueListenableBuilder<int>(
+                                        //allquantity
+                                        valueListenable:
+                                            pStotalQuantityNotifier,
+                                        builder: (BuildContext context,
+                                            int pSItems, Widget? child) {
+                                          return ValueListenableBuilder<double>(
+                                              //allprice
+                                              valueListenable:
+                                                  pStotalSellingPriceNotifier,
+                                              builder: (BuildContext context,
+                                                  double pStotalPrice,
+                                                  Widget? child) {
+                                                int combinedTotalItems =
+                                                    totalItems +
+                                                        pItems +
+                                                        nakDisplayQuantity +
+                                                        pSItems;
+                                                double combineTotalPrice =
+                                                    totalPrice +
+                                                        ptotalPrice +
+                                                        totalSubtotal +
+                                                        pStotalPrice;
+                                                return Visibility(
+                                                  visible: !latestOrder
+                                                      .isEmpty, // Show the button only when latestOrder is not empty
+                                                  child: ElevatedButton(
+                                                    onPressed: () async {
+                                                      await newCreateOtem(
+                                                        storeServiceAndProduct,
+                                                        context,
+                                                        combinedTotalItems,
+                                                        combineTotalPrice,
+                                                      );
+                                                      reset();
+                                                      totalSellingPriceNotifier
+                                                          .value = 0;
+                                                      totalQuantityNotifier
+                                                          .value = 0;
+                                                      ptotalSellingPriceNotifier
+                                                          .value = 0;
+                                                      ptotalQuantityNotifier
+                                                          .value = 0;
+                                                      pStotalSellingPriceNotifier
+                                                          .value = 0;
+                                                      pStotalQuantityNotifier
+                                                          .value = 0;
+                                                      // print('Dalam store: $storeServiceAndProduct');
+                                                    },
+                                                    style: ButtonStyle(
+                                                      backgroundColor:
+                                                          MaterialStateProperty
+                                                              .resolveWith<
+                                                                      Color>(
+                                                                  (states) {
+                                                        if (states.contains(
+                                                            MaterialState
+                                                                .disabled)) {
+                                                          return Colors
+                                                              .grey; // Grey color for disabled state
+                                                        } else {
+                                                          return Colors
+                                                              .blue; // Blue color for enabled state
+                                                        }
+                                                      }),
+                                                    ),
+                                                    child: Text(
+                                                      "${latestOrder.isEmpty ? 0 : combinedTotalItems} item | ${latestOrder.isEmpty ? '0.00' : combineTotalPrice.toStringAsFixed(2)}",
+                                                      style: TextStyle(
+                                                          color: Colors.white),
+                                                    ),
+                                                  ),
+                                                );
+                                              });
+                                        },
+                                      );
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
         ],
       ),
     );
@@ -167,25 +383,28 @@ class _FirstPage extends State<FirstPage> {
 
   updateFirst() async {
     await fetchPendingAndMembers();
-    // setState(() {
-    //   getMember();
-    // });
+    setState(() {
+      fetchData();
+    });
   }
 
   getLatest() {
     latestOrder = orders.last;
+    orderid = latestOrder['orderID'].toString();
   }
 
   void updateSelectedOrder(dynamic order) {
     setState(() {
       latestOrder = order;
+
+      orderid = latestOrder['orderID'].toString();
+      fetchData();
     });
   }
 
   Widget menuContainer() {
     if (latestOrder.isNotEmpty) {
-      int memberID = latestOrder['memberID'] ??
-          0; // Assign a default value if memberID is null
+      int memberID = latestOrder['memberID'] ?? 0;
 
       dynamic dalamMem = members.firstWhere(
         (member) => memberID == member['memberID'],
@@ -291,7 +510,7 @@ class _FirstPage extends State<FirstPage> {
                         "No member selected yet",
                         style: const TextStyle(
                           fontSize: 18,
-                          color: Colors.grey,
+                          color: Colors.blue,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -337,7 +556,10 @@ class _FirstPage extends State<FirstPage> {
                     children: [
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 500),
-                        width: isExpanded1 ? 262 : 162,
+                        curve: Curves.easeInOut,
+                        width: isExpanded1
+                            ? MediaQuery.of(context).size.width / 1.5
+                            : MediaQuery.of(context).size.width / 2.3,
                         height: 35,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(24),
@@ -348,15 +570,29 @@ class _FirstPage extends State<FirstPage> {
                             const SizedBox(width: 5),
                             const Icon(Icons.search,
                                 size: 24, color: Colors.blue),
-                            if (isExpanded1) const SizedBox(width: 3),
                             if (isExpanded1)
-                              const Text(
-                                'Test',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
+                              const SizedBox(
+                                  width: 3), // Added SizedBox for spacing
+                            if (isExpanded1)
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: TextField(
+                                    controller: searchController,
+                                    onChanged: (text) {
+                                      setState(() {
+                                        // Update the searchText variable whenever the TextField value changes
+                                        searchText = text;
+                                        
+                                      });
+                                    },
+                                    decoration: const InputDecoration(
+                                      border: InputBorder
+                                          .none, // Remove the underline
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              )
                           ],
                         ),
                       ),
@@ -365,10 +601,14 @@ class _FirstPage extends State<FirstPage> {
                 ),
               ),
             ),
-            const SizedBox(width: 4),
+            //serviceeeeee
+            // const SizedBox(width: 4),
             AnimatedContainer(
               duration: const Duration(milliseconds: 500),
-              width: isExpanded1 ? 35 : 100,
+              curve: Curves.easeInOut,
+              width: isExpanded1
+                  ? MediaQuery.of(context).size.width / 8
+                  : MediaQuery.of(context).size.width / 4,
               height: 35,
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
@@ -384,22 +624,33 @@ class _FirstPage extends State<FirstPage> {
                     borderRadius: BorderRadius.circular(24),
                     color: isExpanded2 ? Colors.blue : Colors.white,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.folder,
-                          size: 24,
-                          color: isExpanded2 ? Colors.white : Colors.blue),
-                      if (!isExpanded1 || isExpanded2) const SizedBox(width: 3),
-                      if (!isExpanded1 || isExpanded2)
-                        Text(
-                          'Service',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: isExpanded2 ? Colors.white : Colors.black,
-                          ),
+                  child: ClipRect(
+                    child: Flex(
+                      direction: Axis.horizontal,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          flex: 1,
+                          child: Icon(Icons.folder,
+                              size: 24,
+                              color: isExpanded2 ? Colors.white : Colors.blue),
                         ),
-                    ],
+                        if (!isExpanded1 || isExpanded2)
+                          const SizedBox(width: 3),
+                        if (!isExpanded1 || isExpanded2)
+                          Flexible(
+                            flex: 2,
+                            child: Text(
+                              'Service',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color:
+                                    isExpanded2 ? Colors.white : Colors.black,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -407,7 +658,10 @@ class _FirstPage extends State<FirstPage> {
             const SizedBox(width: 3),
             AnimatedContainer(
               duration: const Duration(milliseconds: 500),
-              width: isExpanded1 ? 35 : 100,
+              curve: Curves.easeInOut,
+              width: isExpanded1
+                  ? MediaQuery.of(context).size.width / 8
+                  : MediaQuery.of(context).size.width / 4,
               height: 35,
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
@@ -423,22 +677,33 @@ class _FirstPage extends State<FirstPage> {
                     borderRadius: BorderRadius.circular(24),
                     color: isExpanded3 ? Colors.blue : Colors.white,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.folder,
-                          size: 24,
-                          color: isExpanded3 ? Colors.white : Colors.blue),
-                      if (!isExpanded1 || isExpanded3) const SizedBox(width: 3),
-                      if (!isExpanded1 || isExpanded3)
-                        Text(
-                          'Product',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: isExpanded3 ? Colors.white : Colors.black,
-                          ),
+                  child: ClipRRect(
+                    child: Flex(
+                      direction: Axis.horizontal,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          flex: 1,
+                          child: Icon(Icons.folder,
+                              size: 24,
+                              color: isExpanded3 ? Colors.white : Colors.blue),
                         ),
-                    ],
+                        if (!isExpanded1 || isExpanded3)
+                          const SizedBox(width: 3),
+                        if (!isExpanded1 || isExpanded3)
+                          Flexible(
+                            flex: 2,
+                            child: Text(
+                              'Product',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color:
+                                    isExpanded3 ? Colors.white : Colors.black,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -452,7 +717,9 @@ class _FirstPage extends State<FirstPage> {
             height: 558,
             color: Colors.grey[200],
             child: isExpanded1
-                ? AllProducts()
+                ? AllProductServices(
+                    searchText: searchText,
+                  )
                 : isExpanded2
                     ? AllServices()
                     : isExpanded3
@@ -463,128 +730,53 @@ class _FirstPage extends State<FirstPage> {
       ],
     );
   }
+  // String updateTotalItems() {
+  //   int totalItem = getServiceTotalQuantity() + getProductTotalQuantity();
+  //   totalQuantityNotifier.value = totalItem;
+  //   return totalItem.toString();
+  // }
 
-  String updateTotalItems() {
-    int totalItem = getServiceTotalQuantity() + getProductTotalQuantity();
-    totalQuantityNotifier.value = totalItem;
-    return totalItem.toString();
-  }
+  // String updateTotalPrice() {
+  //   double totalPrice = getServiceTotalPrice() + getProductTotalPrice();
+  //   totalSellingPriceNotifier.value = totalPrice;
+  //   return totalPrice.toString();
+  // }
 
-  String updateTotalPrice() {
-    double totalPrice = getServiceTotalPrice() + getProductTotalPrice();
-    totalSellingPriceNotifier.value = totalPrice;
-    return totalPrice.toString();
-  }
   void _showDeleteConfirmationDialog(BuildContext context) {
-  showCupertinoDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return CupertinoAlertDialog(
-        title: Text('Delete All Items'),
-        content: Text('Are you sure you want to delete all items?'),
-        actions: <Widget>[
-          CupertinoDialogAction(
-            child: Text('Cancel'),
-            onPressed: () {
-              Navigator.of(context).pop(); // Close the dialog
-            },
-          ),
-          CupertinoDialogAction(
-            child: Text('Delete'),
-            onPressed: () {
-              setState(() {
-                // Clear the selected items
-                selectedService.clear();
-                selectedProduct.clear();
-                selectedItems.clear();
-              });
-
-              totalSellingPriceNotifier.value = 0;
-              totalQuantityNotifier.value = 0;
-              ptotalSellingPriceNotifier.value = 0;
-              ptotalQuantityNotifier.value = 0;
-
-              Navigator.of(context).pop(); // Close the dialog
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
-  Widget bottomContainertest() {
-    return Positioned(
-      bottom: 0,
-      child: Container(
-        height: 76,
-        width: MediaQuery.of(context).size.width,
-        color: Colors.white,
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.delete),
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: Text('Delete All Items'),
+          content: Text('Are you sure you want to delete all items?'),
+          actions: <Widget>[
+            CupertinoDialogAction(
+              child: Text('Cancel'),
               onPressed: () {
-                _showDeleteConfirmationDialog(context);
+                Navigator.of(context).pop(); // Close the dialog
               },
-              iconSize: 24.0,
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: ValueListenableBuilder<int>(
-                  valueListenable: totalQuantityNotifier,
-                  builder:
-                      (BuildContext context, int totalItems, Widget? child) {
-                    return ValueListenableBuilder<double>(
-                      valueListenable: totalSellingPriceNotifier,
-                      builder: (BuildContext context, double totalPrice,
-                          Widget? child) {
-                        return ValueListenableBuilder<int>(
-                          valueListenable: ptotalQuantityNotifier,
-                          builder: (BuildContext context, int pItems,
-                              Widget? child) {
-                            return ValueListenableBuilder<double>(
-                              valueListenable: ptotalSellingPriceNotifier,
-                              builder: (BuildContext context,
-                                  double ptotalPrice, Widget? child) {
-                                int combinedTotalItems = totalItems + pItems;
-                                double combineTotalPrice =
-                                    totalPrice + ptotalPrice;
-                                return ElevatedButton(
-                                  onPressed: () async {
-                                    await newCreateOtem(
-                                      storeServiceAndProduct,
-                                      context,
-                                      combinedTotalItems,
-                                      combineTotalPrice,
-                                    );
-                                    reset();
-                                    totalSellingPriceNotifier.value = 0;
-                                    totalQuantityNotifier.value = 0;
-                                    ptotalSellingPriceNotifier.value = 0;
-                                    ptotalQuantityNotifier.value = 0;
+            CupertinoDialogAction(
+              child: Text('Delete'),
+              onPressed: () {
+                setState(() {
+                  // Clear the selected items
+                  selectedService.clear();
+                  selectedProduct.clear();
+                  selectedItems.clear();
+                });
 
-                                    print(
-                                        'Dalam store: $storeServiceAndProduct');
-                                  },
-                                  child: Text(
-                                    "$combinedTotalItems item | ${combineTotalPrice.toStringAsFixed(2)} ",
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
+                totalSellingPriceNotifier.value = 0;
+                totalQuantityNotifier.value = 0;
+                ptotalSellingPriceNotifier.value = 0;
+                ptotalQuantityNotifier.value = 0;
+
+                Navigator.of(context).pop(); // Close the dialog
+              },
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -605,10 +797,6 @@ class _FirstPage extends State<FirstPage> {
 
     var memberName = member['name'];
 
-    print("dalamapi: $members");
-    print("dalammem: $member");
-    // print("sku: $sku");
-    print('name: $memberName ');
     for (var entry in storeServiceAndProduct.entries) {
       var serviceData = entry.value;
 
@@ -641,7 +829,7 @@ class _FirstPage extends State<FirstPage> {
         http.StreamedResponse response = await request.send();
 
         if (response.statusCode != 200) {
-          print(response.reasonPhrase);
+          // print(response.reasonPhrase);
         } else {
           final responsebody = await response.stream.bytesToString();
           final body = json.decode(responsebody);
@@ -668,12 +856,45 @@ class _FirstPage extends State<FirstPage> {
           totalItems: combinedTotalItems,
           totalPrice: combineTotalPrice,
           otems: otems,
+          fetchData: fetchData,
         ),
       ),
     );
   }
 
-  Future<Map<String, dynamic>> fetchPendingAndMembers() async {
+  fetchData() async {
+    var headers = {'token': tokenGlobal};
+    var request = http.Request(
+        'GET',
+        Uri.parse(
+            'https://order.tunai.io/loyalty/order/ ' + orderid + '/otems'));
+
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      final responsebody = await response.stream.bytesToString();
+      final body = json.decode(responsebody);
+      setState(() {
+        otem = body['otems'].where((item) => item['deleteDate'] == 0).toList();
+        nakDisplayQuantity = otem.fold(
+            0, (sum, otem) => sum + int.parse(otem['quantity'].toString()));
+
+        totalSubtotal =
+            otem.fold(0, (sum, otem) => sum + otem['price'] * otem['quantity']);
+      });
+
+      // print("otems firstPage: $otem");
+      // print("qty firstPage: $nakDisplayQuantity");
+
+      return otem;
+    } else {
+      // print(response.reasonPhrase);
+    }
+  }
+
+  Future<void> fetchPendingAndMembers() async {
     var headers = {
       'token': tokenGlobal,
     };
@@ -700,24 +921,15 @@ class _FirstPage extends State<FirstPage> {
       final pendingBody = json.decode(pendingResponseBody);
       final membersBody = json.decode(membersResponseBody);
 
-      orders = pendingBody['orders'];
-      members = membersBody['members'];
-
-      Map<String, dynamic> result = {
-        'pending': orders,
-        'members': members,
-      };
-
       setState(() {
         orders = pendingBody['orders'];
         latestOrder = orders.isNotEmpty ? orders.last : {};
+        members = membersBody['members'];
+        orderid = latestOrder['orderID'].toString();
       });
-
-      return result;
     } else {
-      print(pendingResponse.reasonPhrase);
-      print(membersResponse.reasonPhrase);
-      return {};
+      // print(pendingResponse.reasonPhrase);
+      // print(membersResponse.reasonPhrase);
     }
   }
 }

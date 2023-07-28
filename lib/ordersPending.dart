@@ -5,12 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:minimal/test/addMember.dart';
 import 'package:minimal/test/login.dart';
 import 'package:minimal/test/memberPage.dart';
-import 'package:minimal/test/trialMenu.dart';
-import 'package:minimal/test/walkin.dart';
 import 'api.dart';
 import 'dart:convert';
-import 'intro.dart';
-import 'menu.dart';
 
 class OrdersPending extends StatefulWidget {
   const OrdersPending({
@@ -18,11 +14,13 @@ class OrdersPending extends StatefulWidget {
     required this.updateFirst,
     required this.onOrderSelected,
     Key? key,
+    required this.fetchData,
   }) : super(key: key);
 
   final Function getLatest;
   final Function updateFirst;
   final Function(dynamic) onOrderSelected;
+  final Function fetchData;
 
   @override
   State<OrdersPending> createState() => _OrdersPendingState();
@@ -42,26 +40,6 @@ class _OrdersPendingState extends State<OrdersPending> {
   String mobile = "0000000000";
 
   int walkInMemberID = 0;
-
-  Widget xIcon() {
-    return IconButton(
-      icon: Image.asset(
-        "lib/assets/Artboard 40.png",
-        height: 30,
-        width: 20,
-      ),
-      onPressed: () => Navigator.pop(context),
-      iconSize: 24,
-    );
-  }
-
-  Widget pendingIcon() {
-    return IconButton(
-        icon: Image.asset("lib/assets/Pending.png"),
-        onPressed: () {
-          // Implement onPressed action
-        });
-  }
 
   @override
   void initState() {
@@ -114,7 +92,7 @@ class _OrdersPendingState extends State<OrdersPending> {
           padding: const EdgeInsets.all(8.0),
           child: Container(
             // height: 95, sekali walkin
-            height: 60,
+            height: 95,
             width: double.infinity,
             color: Colors.grey[200]?.withOpacity(0.0),
             child: Padding(
@@ -153,8 +131,8 @@ class _OrdersPendingState extends State<OrdersPending> {
                                   height: 19,
                                   width: 22,
                                 ),
-                                SizedBox(width: 10),
-                                Text(
+                                const SizedBox(width: 10),
+                                const Text(
                                   'New',
                                   style: TextStyle(
                                       fontSize: 16, color: Colors.white),
@@ -164,7 +142,7 @@ class _OrdersPendingState extends State<OrdersPending> {
                           ),
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       // Expanded(
                       //   child: GestureDetector(
                       //     onTap: () async {
@@ -232,14 +210,14 @@ class _OrdersPendingState extends State<OrdersPending> {
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => CarMemberPage(
-                                    updateData: updateData,
-                                  )),
-                        );
-                      },
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => CarMemberPage(
+                                        updateData: updateData,
+                                      )),
+                            );
+                          },
                           child: Container(
                             height: 35,
                             decoration: BoxDecoration(
@@ -267,44 +245,49 @@ class _OrdersPendingState extends State<OrdersPending> {
                       ),
                     ],
                   ),
-                  // Padding(
-                  //   padding: const EdgeInsets.only(top: 8.0),
-                  //   child: GestureDetector(
-                  //     onTap: () {
-                  //       Navigator.push(
-                  //         context,
-                  //         MaterialPageRoute(
-                  //             builder: (context) => CarMemberPage(
-                  //                   updateData: updateData,
-                  //                 )),
-                  //       );
-                  //     },
-                  //     child: Container(
-                  //       height: 35,
-                  //       width: double.infinity,
-                  //       decoration: BoxDecoration(
-                  //         color: Colors.blue,
-                  //         borderRadius: BorderRadius.circular(10),
-                  //       ),
-                  //       child: Row(
-                  //         mainAxisAlignment: MainAxisAlignment.center,
-                  //         children: [
-                  //           Image.asset(
-                  //             'lib/assets/2.png',
-                  //             height: 19,
-                  //             width: 22,
-                  //           ),
-                  //           SizedBox(width: 10),
-                  //           Text(
-                  //             'Search member',
-                  //             style:
-                  //                 TextStyle(fontSize: 16, color: Colors.white),
-                  //           ),
-                  //         ],
-                  //       ),
-                  //     ),
-                  //   ),
-                  // )
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: GestureDetector(
+                      onTap: ()async {
+
+                        await createOrder(context);
+                        updateData();
+
+                         Navigator.of(context).pop(walkinOrder);
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //       builder: (context) => CarMemberPage(
+                        //             updateData: updateData,
+                        //           )),
+                        // );
+                      },
+                      child: Container(
+                        height: 35,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'lib/assets/1.png',
+                              height: 19,
+                              width: 22,
+                            ),
+                            SizedBox(width: 10),
+                            const Text(
+                              'Walk-In',
+                              style:
+                                  TextStyle(fontSize: 16, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
                 ],
               ),
             ),
@@ -377,6 +360,9 @@ class _OrdersPendingState extends State<OrdersPending> {
               var memberData = members.firstWhere(
                   (member) => member['memberID'].toString() == memberID,
                   orElse: () => null);
+              // var memberImage = memberData['icon'] != null
+              //     ? memberData['icon']
+              //     : "assets/Artboard 40 copy 2.png";
 
               var memberName = memberData != null ? memberData['name'] : 'N/A';
               var memberMobile =
@@ -390,7 +376,6 @@ class _OrdersPendingState extends State<OrdersPending> {
 
               return GestureDetector(
                 onTap: () {
-                  print(order);
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
@@ -399,17 +384,17 @@ class _OrdersPendingState extends State<OrdersPending> {
                           primaryContrastingColor: Colors.white,
                         ),
                         child: CupertinoAlertDialog(
-                          title: Text('Switch customer'),
+                          title: const Text('Switch customer'),
                           content: Text('Switch to $memberName\'s order?'),
                           actions: [
                             CupertinoDialogAction(
-                              child: Text('No'),
+                              child: const Text('No'),
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },
                             ),
                             CupertinoDialogAction(
-                              child: Text('Yes'),
+                              child: const Text('Yes'),
                               onPressed: () {
                                 Navigator.of(context).pop();
                                 widget.onOrderSelected(order);
@@ -489,10 +474,10 @@ class _OrdersPendingState extends State<OrdersPending> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  SizedBox(height: 8),
+                                  const SizedBox(height: 8),
                                   Text(
                                     formattedNumber,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,
                                       overflow: TextOverflow.ellipsis,
@@ -506,12 +491,12 @@ class _OrdersPendingState extends State<OrdersPending> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Divider(),
+                            const Divider(),
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Row(
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.access_time,
                                     size: 18,
                                     color: Colors.grey,
@@ -522,7 +507,7 @@ class _OrdersPendingState extends State<OrdersPending> {
                                       DateFormat('dd-MM-yyyy').format(
                                           DateTime.fromMillisecondsSinceEpoch(
                                               order['createDate'] * 1000)),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: Colors.grey,
                                       ),
                                     ),
@@ -532,7 +517,7 @@ class _OrdersPendingState extends State<OrdersPending> {
                                     padding: const EdgeInsets.only(left: 8.0),
                                     child: Text(
                                       order['amount'].toStringAsFixed(2),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: Colors.black,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
@@ -556,10 +541,33 @@ class _OrdersPendingState extends State<OrdersPending> {
     );
   }
 
+  Widget displayImage(String? memberImage) {
+    if (memberImage != null) {
+      return Image.network(
+        memberImage,
+        width: 30,
+        height: 30,
+      );
+    } else {
+      return Image.asset(
+        "lib/assets/Artboard 40 copy 2.png",
+        width: 30,
+        height: 30,
+      );
+    }
+  }
+
   void updateData() async {
     await fetchPendingAndMembers();
+    widget.fetchData();
     widget.updateFirst();
-    setState(() {});
+    if(mounted){
+      setState(() {
+
+      
+    });
+    }
+    
   }
 
   Future deleteOrder(int orderId) async {
@@ -572,9 +580,9 @@ class _OrdersPendingState extends State<OrdersPending> {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      print(await response.stream.bytesToString());
+      // print(await response.stream.bytesToString());
 
-      print("delete order");
+      // print("delete order");
     } else {
       print(response.reasonPhrase);
     }
@@ -593,7 +601,7 @@ class _OrdersPendingState extends State<OrdersPending> {
 
     var membersRequest = http.Request(
       'GET',
-      Uri.parse('https://order.tunai.io/loyalty/order?active=1'),
+      Uri.parse('https://member.tunai.io/loyalty/member'),
     );
     membersRequest.headers.addAll(headers);
 
@@ -618,8 +626,8 @@ class _OrdersPendingState extends State<OrdersPending> {
 
       return result;
     } else {
-      print(pendingResponse.reasonPhrase);
-      print(membersResponse.reasonPhrase);
+      // print(pendingResponse.reasonPhrase);
+      // print(membersResponse.reasonPhrase);
       return {};
     }
   }
@@ -644,9 +652,12 @@ class _OrdersPendingState extends State<OrdersPending> {
     if (response.statusCode == 200) {
       final responsebody = await response.stream.bytesToString();
       final body = json.decode(responsebody);
+      setState(() {
+        walkinOrder = body;
+      });
 
-      walkinOrder = body;
-      widget.getLatest;
+      // widget.getLatest;
+      // updateData();
       //  Navigator.of(context).pop(walkinOrder);
 
       // Navigator.pushReplacement(
@@ -654,9 +665,9 @@ class _OrdersPendingState extends State<OrdersPending> {
       //   MaterialPageRoute(builder: (context) => FirstPage()),
       // );
 
-      print("walkinOrder: $walkinOrder ");
+      // print("walkinOrder: $walkinOrder ");
 
-      print(responsebody);
+      // print(responsebody);
     } else {
       print(response.reasonPhrase);
     }

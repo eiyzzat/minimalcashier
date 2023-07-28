@@ -6,9 +6,7 @@ import '../api.dart';
 import 'login.dart';
 
 class Cashier extends StatefulWidget {
-   Cashier({Key? key, 
-  required this.cartOrderId,
-  required this.inCashier});
+  Cashier({Key? key, required this.cartOrderId, required this.inCashier});
 
   final String cartOrderId;
   Map<String, dynamic>? inCashier;
@@ -19,7 +17,7 @@ class Cashier extends StatefulWidget {
 
 class _CashierState extends State<Cashier> {
   List<dynamic> cashier = [];
-  Set<int> _selectedIndices = Set<int>();
+  int _selectedIndex = -1;
 
   int? selectedStaffIndex;
 
@@ -27,9 +25,10 @@ class _CashierState extends State<Cashier> {
 
   @override
   Widget build(BuildContext context) {
-
     selectedStaffDetails = widget.inCashier;
-    
+
+    print(widget.cartOrderId);
+
     print("masuk: $selectedStaffDetails");
     print("select");
     print(selectedStaffDetails);
@@ -44,7 +43,15 @@ class _CashierState extends State<Cashier> {
           'Select Cashier',
           style: TextStyle(color: Colors.black),
         ),
-        leading: xIcon(),
+        leading: IconButton(
+          icon: Image.asset(
+            "lib/assets/Artboard 40.png",
+            height: 30,
+            width: 20,
+          ),
+          onPressed: () => Navigator.pop(context),
+          iconSize: 24,
+        ),
       ),
       body: Stack(
         children: [
@@ -72,7 +79,7 @@ class _CashierState extends State<Cashier> {
                       future: getStaff(),
                       builder: (context, snapshot) {
                         if (!snapshot.hasData) {
-                          return Center(
+                          return const Center(
                             child: CircularProgressIndicator(),
                           );
                         } else {
@@ -82,7 +89,7 @@ class _CashierState extends State<Cashier> {
                                 shrinkWrap: true,
                                 itemCount: cashier.length,
                                 gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
                                   mainAxisSpacing: 10,
                                   crossAxisSpacing: 10,
@@ -99,23 +106,27 @@ class _CashierState extends State<Cashier> {
                                   return GestureDetector(
                                     onTap: () {
                                       setState(() {
-                                        if (_selectedIndices.contains(index)) {
-                                          _selectedIndices.remove(index);
+                                        if (_selectedIndex == index) {
+                                          // The same cashier is selected again, deselect it
+                                          _selectedIndex = -1;
                                         } else {
-                                          _selectedIndices.add(index);
+                                          _selectedIndex =
+                                              index; // Set the selected index
                                         }
+
                                         selectedStaffDetails =
                                             getSelectedStaffDetails();
-                                        printSelectedStaffDetails();
+                                        print(
+                                            "selectedStaffDetails: $selectedStaffDetails");
+                                        // printSelectedStaffDetails();
                                       });
                                     },
                                     child: Card(
                                       shape: RoundedRectangleBorder(
                                         side: BorderSide(
-                                          color:
-                                              _selectedIndices.contains(index)
-                                                  ? Colors.blue
-                                                  : Colors.transparent,
+                                          color: _selectedIndex == index
+                                              ? Colors.blue
+                                              : Colors.transparent,
                                           width: 2.0,
                                         ),
                                         borderRadius:
@@ -133,7 +144,7 @@ class _CashierState extends State<Cashier> {
                                               width: 25,
                                               height: 25,
                                             ),
-                                            SizedBox(width: 8),
+                                            const SizedBox(width: 8),
                                             Expanded(
                                               child: Column(
                                                 crossAxisAlignment:
@@ -148,7 +159,7 @@ class _CashierState extends State<Cashier> {
                                                           TextOverflow.ellipsis,
                                                     ),
                                                   ),
-                                                  SizedBox(height: 8),
+                                                  const SizedBox(height: 8),
                                                   Text(
                                                     formattedNumber,
                                                     style: TextStyle(
@@ -192,9 +203,12 @@ class _CashierState extends State<Cashier> {
           child: ElevatedButton(
             onPressed: () {
               print("dalam cashier: $selectedStaffDetails");
-              // print("dalam cashier: ${selectedStaffDetails!['selectedStaff'][0]}");
+
               addCashier(selectedStaffDetails);
-              Navigator.pop(context, selectedStaffDetails, );
+              Navigator.pop(
+                context,
+                selectedStaffDetails,
+              );
             },
             child: const Text('Add'),
           ),
@@ -203,56 +217,42 @@ class _CashierState extends State<Cashier> {
     );
   }
 
-  Widget xIcon() {
-    return IconButton(
-      icon: Image.asset(
-        "lib/assets/Artboard 40.png",
-        height: 30,
-        width: 20,
-      ),
-      onPressed: () => Navigator.pop(context),
-      iconSize: 24,
-    );
-  }
-
   Map<String, dynamic>? getSelectedStaffDetails() {
-    if (_selectedIndices.isEmpty) {
-      return null;
+    if (_selectedIndex == -1) {
+      return null; // No cashier is selected
     }
 
-    List<Map<String, dynamic>> selectedDetails = [];
-    for (int index in _selectedIndices) {
-      var cashierDetails = cashier[index];
-      var name = cashierDetails['name'];
-      var image = cashierDetails['icon'];
-      var staffID = cashierDetails['staffID'];
-      selectedDetails.add({
-        'name': name,
-        'image': image,
-        'staffID': staffID,
-      });
-    }
+    var cashierDetails = cashier[_selectedIndex];
+    var name = cashierDetails['name'];
+    var image = cashierDetails['icon'];
+    var staffID = cashierDetails['staffID'];
 
     return {
-      'selectedStaff': selectedDetails,
+      'selectedStaff': [
+        {
+          'name': name,
+          'image': image,
+          'staffID': staffID,
+        },
+      ],
     };
   }
 
-  void printSelectedStaffDetails() {
-    if (_selectedIndices.isEmpty) {
-      print('No containers selected.');
-    } else {
-      print('Selected staff details:');
-      for (int index in _selectedIndices) {
-        var cashierDetails = cashier[index];
-        var name = cashierDetails['name'];
-        var image = cashierDetails['icon'];
-        var staffID = cashierDetails['staffID'];
+  // void printSelectedStaffDetails() {
+  //   if (_selectedIndices.isEmpty) {
+  //     print('No containers selected.');
+  //   } else {
+  //     print('Selected staff details:');
+  //     for (int index in _selectedIndices) {
+  //       var cashierDetails = cashier[index];
+  //       var name = cashierDetails['name'];
+  //       var image = cashierDetails['icon'];
+  //       var staffID = cashierDetails['staffID'];
 
-        print('Name: $name staffID: $staffID Image: $image ');
-      }
-    }
-  }
+  //       print('Name: $name staffID: $staffID Image: $image ');
+  //     }
+  //   }
+  // }
 
   Future getStaff() async {
     var headers = {
@@ -273,7 +273,7 @@ class _CashierState extends State<Cashier> {
       Map<String, dynamic> minimal = body;
 
       for (var staff in minimal['staffs']) {
-        if (staff['cashier']['isCashier'] == 1) {
+        if (staff['cashier']['isCashier'] == 1 && staff['deleteDate'] == 0) {
           var cashierData = {
             'staffID': staff['staffID'],
             'name': staff['name'],
@@ -293,13 +293,7 @@ class _CashierState extends State<Cashier> {
   Future<void> addCashier(Map<String, dynamic>? selectedStaffDetails) async {
     if (selectedStaffDetails == null || selectedStaffDetails.isEmpty) {
       print('selectedStaffDetails is null or empty');
-      return; // or handle the case accordingly
-    }
-
-    if (selectedStaffDetails['selectedStaff'][0] == null ||
-        selectedStaffDetails['selectedStaff'][0]['staffID'] == null) {
-      print('Invalid staffID in selectedStaffDetails');
-      return; // or handle the case accordingly
+      return; 
     }
 
     var headers = {
@@ -308,18 +302,24 @@ class _CashierState extends State<Cashier> {
     };
 
     var request = http.Request(
-        'POST',
-        Uri.parse(
-            'https://order.tunai.io/loyalty/orders/${widget.cartOrderId}/cashier/create'));
+      'POST',
+      Uri.parse(
+          'https://order.tunai.io/loyalty/orders/${widget.cartOrderId}/cashier/create'),
+    );
 
-    var staffID = selectedStaffDetails['selectedStaff'][0]['staffID'];
-    var staffIDString = staffID.toString();
+    String staffID =
+        selectedStaffDetails['selectedStaff'][0]['staffID'].toString();
+    if (staffID == null) {
+      print('No staffID found in selectedStaffDetails.');
+      return;
+    }
 
-    request.bodyFields = {'staffID': staffIDString};
+    print('staffID: $staffID'); 
+
+    request.bodyFields = {'staffID': staffID};
     request.headers.addAll(headers);
-
     http.StreamedResponse response = await request.send();
-    print(staffIDString);
+
     if (response.statusCode == 200) {
       print(await response.stream.bytesToString());
       print("dah add cashier");

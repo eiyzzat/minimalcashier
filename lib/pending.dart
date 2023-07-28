@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:minimal/test/login.dart';
 import 'package:minimal/test/staffItem.dart';
@@ -1454,120 +1455,137 @@ class _StaffPartState extends State<StaffPart> {
   Widget hi() {
     Future staffData = APIFunctions.getStaff();
 
-    print("otem dalam staff : ${otems}");
+    // print("otem dalam staff : ${otems}");
 
     return Expanded(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  'Staff list',
-                  style: TextStyle(fontSize: 18, color: Colors.black),
-                ),
-              ],
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top:10.0,left:12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Staff list',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontFamily:
+                          'SFProDisplay', // Use the specified font family
+                      fontWeight: FontWeight.normal,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          FutureBuilder(
-            future: staffData,
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              } else {
-                return StatefulBuilder(
-                  builder: (context, setState) {
-                    return GridView.builder(
-                      shrinkWrap: true,
-                      itemCount: staff.length,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 10,
-                        childAspectRatio: 2.5,
-                      ),
-                      itemBuilder: (context, index) {
-                        var staffDetails = staff[index];
-                        var name = staffDetails['name'];
-                        String mobileNumber = staffDetails['mobile'].toString();
-                        String formattedNumber =
-                            '(${mobileNumber.substring(0, 4)}) ${mobileNumber.substring(4, 7)}-${mobileNumber.substring(7)}';
-
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (_selectedIndices.contains(index)) {
-                                _selectedIndices.remove(index);
-                              } else {
-                                _selectedIndices.add(index);
-                              }
-                              selectedStaffDetails = getSelectedStaffDetails();
-                              printSelectedStaffDetails();
-                            });
-                          },
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                color: _selectedIndices.contains(index)
-                                    ? Colors.blue
-                                    : Colors.transparent,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Image(
-                                    image: NetworkImage(staff[index]['icon']),
-                                    width: 25,
-                                    height: 25,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          name,
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            color: Colors.black,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        SizedBox(height: 8),
-                                        Text(
-                                          formattedNumber,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.black,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: FutureBuilder(
+                future: staffData,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else {
+                    return StatefulBuilder(
+                      builder: (context, setState) {
+                        return GridView.builder(
+                          physics: const ScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: staff.length,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 10,
+                            crossAxisSpacing: 10,
+                            childAspectRatio: 2.5,
                           ),
+                          itemBuilder: (context, index) {
+                            var staffDetails = staff[index];
+                            var name = staffDetails['name'];
+                            String mobileNumber =
+                                staffDetails['mobile'].toString();
+                            String formattedNumber =
+                                '(${mobileNumber.substring(0, 4)}) ${mobileNumber.substring(4, 7)}-${mobileNumber.substring(7)}';
+
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  if (_selectedIndices.contains(index)) {
+                                    _selectedIndices.remove(index);
+                                  } else {
+                                    _selectedIndices.add(index);
+                                  }
+                                  selectedStaffDetails =
+                                      getSelectedStaffDetails();
+                                  printSelectedStaffDetails();
+                                });
+                              },
+                              child: Card(
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                    color: _selectedIndices.contains(index)
+                                        ? Colors.blue
+                                        : Colors.transparent,
+                                    width: 2.0,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4.0),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Image(
+                                        image:
+                                            NetworkImage(staff[index]['icon']),
+                                        width: 25,
+                                        height: 25,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              name,
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                color: Colors.black,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            SizedBox(height: 8),
+                                            Text(
+                                              formattedNumber,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.black,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     );
-                  },
-                );
-              }
-            },
-          ),
-        ],
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1693,7 +1711,7 @@ class SpecificStaff extends StatefulWidget {
 class _SpecificStaffState extends State<SpecificStaff> {
   Map<String, Map<String, String>> otemOrderMap = {};
   // List<Map<String, dynamic>> updatedStaffDetails = [];
-  int? selectedItemCount;
+  String? selectedItemCount;
   int? selectedStaffIndex;
   Map<String, String> selectedSkus = {};
 
@@ -1703,9 +1721,6 @@ class _SpecificStaffState extends State<SpecificStaff> {
 
   List<TextEditingController> effortControllers = [];
   List<TextEditingController> handsOnControllers = [];
-
-  // TextEditingController effortText = TextEditingController();
-  // TextEditingController handsOnText = TextEditingController();
 
   void handleSkusSelected(Map<String, String> skus) {
     setState(() {
@@ -1824,12 +1839,12 @@ class _SpecificStaffState extends State<SpecificStaff> {
                             width: 20,
                             height: 20,
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
                             staffDetail['name'],
                             style: TextStyle(fontSize: 12),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           GestureDetector(
                             onTap: () {
                               setState(() {
@@ -1916,7 +1931,11 @@ class _SpecificStaffState extends State<SpecificStaff> {
                                                       TextOverflow.ellipsis,
                                                 ),
                                                 keyboardType:
-                                                    TextInputType.number,
+                                                    TextInputType.text,
+                                                inputFormatters: [
+                                                  FilteringTextInputFormatter
+                                                      .digitsOnly,
+                                                ],
                                                 onChanged: (value) {
                                                   // Handle changes in Effort value
                                                 },
@@ -2004,7 +2023,11 @@ class _SpecificStaffState extends State<SpecificStaff> {
                                                       TextOverflow.ellipsis,
                                                 ),
                                                 keyboardType:
-                                                    TextInputType.number,
+                                                    TextInputType.text,
+                                                inputFormatters: [
+                                                  FilteringTextInputFormatter
+                                                      .digitsOnly,
+                                                ],
                                                 onChanged: (value) {
                                                   // Handle changes in Hands on value
                                                 },
@@ -2050,7 +2073,7 @@ class _SpecificStaffState extends State<SpecificStaff> {
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     children: [
-                      Text(
+                      const Text(
                         'Apply to ',
                         style: TextStyle(
                           fontSize: 12,
@@ -2058,10 +2081,10 @@ class _SpecificStaffState extends State<SpecificStaff> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Spacer(),
+                      const Spacer(),
                       GestureDetector(
                         onTap: () {
-                          showModalBottomSheet<int>(
+                          showModalBottomSheet<String>(
                             context: context,
                             isScrollControlled: true,
                             shape: const RoundedRectangleBorder(
@@ -2175,14 +2198,18 @@ class _SpecificStaffState extends State<SpecificStaff> {
                 'handson': handsOnText.text,
               };
               updatedStaffDetails.add(updatedStaffDetail);
-              print("testtttttt");
-              print(updatedStaffDetails);
+              // print("testtttttt");
+              // print(updatedStaffDetails);
             }
 
             matchingValue();
+            // print("selectedkusstaff: $selectedSkus");
+            //  print("updatedStaffDetailsstaff: $updatedStaffDetails");
             await trialotemsStaff(selectedSkus, updatedStaffDetails);
-           
-            setState(() {});
+
+            Navigator.pop(context);
+
+            // setState(() {});
           },
           child: const Text('Apply'),
         ),
@@ -2271,10 +2298,6 @@ class _SpecificStaffState extends State<SpecificStaff> {
     var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
 
     for (var i = 0; i < itemIDs.length; i++) {
-      // Check if the widget is still mounted before proceeding
-      // if (!mounted) {
-      //   return;
-      // }
       var request = http.Request(
         'POST',
         Uri.parse(
@@ -2296,10 +2319,8 @@ class _SpecificStaffState extends State<SpecificStaff> {
 
       if (response.statusCode == 200) {
         print(await response.stream.bytesToString());
-        if (mounted) {
-          widget.updateCart();
-          Navigator.pop(context);
-        }
+
+        widget.updateCart();
       } else {
         print(response.reasonPhrase);
         print("GoodLuck");

@@ -30,7 +30,7 @@ class Discount extends StatefulWidget {
 }
 
 class _DiscountState extends State<Discount> {
-  int? selectedItemCount;
+  String? selectedItemCount;
   List<String> itemIDs = [];
 
   Map<String, String> selectedSkus = {};
@@ -41,40 +41,43 @@ class _DiscountState extends State<Discount> {
 
   @override
   Widget build(BuildContext context) {
-    print("widget skus: ${widget.skus}");
-    print("widget otem: ${widget.otems}");
-    return Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-          centerTitle: true,
-          title: const Text(
-            'Discount',
-            style: TextStyle(color: Colors.black),
+    // print("widget skus: ${widget.skus}");
+    // print("widget otem: ${widget.otems}");
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+            centerTitle: true,
+            title: const Text(
+              'Discount',
+              style: TextStyle(color: Colors.black),
+            ),
+            leading: IconButton(
+              icon: Image.asset(
+                "lib/assets/Artboard 40.png",
+                height: 30,
+                width: 20,
+              ),
+              onPressed: () => Navigator.pop(context),
+              iconSize: 24,
+            ),
           ),
-          leading: IconButton(
-            icon: Image.asset(
-              "lib/assets/Artboard 40.png",
-              height: 30,
-              width: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-            iconSize: 24,
+          body: Stack(
+            children: [
+              Container(
+                color: Colors.grey[200],
+              ),
+              Column(
+                children: [hi2()],
+              ),
+            ],
           ),
-        ),
-        body: Stack(
-          children: [
-            Container(
-              color: Colors.grey[200],
-            ),
-            Column(
-              children: [hi2()],
-            ),
-          ],
-        ),
-        bottomNavigationBar: addButton());
+          bottomNavigationBar: addButton()),
+    );
   }
 
   void handleSkusSelected(Map<String, String> skus) {
@@ -86,15 +89,15 @@ class _DiscountState extends State<Discount> {
   Widget hi2() {
     return Column(children: [
       Padding(
-        padding: const EdgeInsets.only(top: 8.0),
+        padding: const EdgeInsets.only(top: 8.0,left: 4, right: 8),
         child: Row(
           children: [
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(5.0),
                 child: Container(
-                  width: double.infinity,
-                  height: 80,
+                  width: 165,
+                  height: 62,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10.0),
@@ -133,8 +136,16 @@ class _DiscountState extends State<Discount> {
                                             FloatingLabelBehavior.never,
                                         border: InputBorder.none,
                                       ),
-                                      keyboardType: TextInputType.text,
+                                      keyboardType: TextInputType.number,
+                                       style: TextStyle(
+                                     
+                                      color: Colors.green,
+                                      fontSize: 14,
+                                      fontFamily: 'SFProDisplay',
+                                      fontWeight: FontWeight.normal,
                                     ),
+                                    ),
+                                    
                                   ),
                                 ),
                               ],
@@ -150,8 +161,8 @@ class _DiscountState extends State<Discount> {
             const SizedBox(width: 8),
             Expanded(
               child: Container(
-                width: double.infinity,
-                height: 80,
+                 width: 165,
+                  height: 62,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10.0),
@@ -189,7 +200,14 @@ class _DiscountState extends State<Discount> {
                                           FloatingLabelBehavior.never,
                                       border: InputBorder.none,
                                     ),
-                                    keyboardType: TextInputType.text,
+                                    keyboardType: TextInputType.number,
+                                    style: TextStyle(
+                                     
+                                      color: Colors.green,
+                                      fontSize: 14,
+                                      fontFamily: 'SFProDisplay',
+                                      fontWeight: FontWeight.normal,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -231,9 +249,12 @@ class _DiscountState extends State<Discount> {
                     const Spacer(),
                     GestureDetector(
                       onTap: () {
-                        showModalBottomSheet<int>(
+                        showModalBottomSheet<String>(
                           context: context,
                           isScrollControlled: true,
+                          shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(20))),
                           builder: (BuildContext context) {
                             return SizedBox(
                               height: 750,
@@ -244,13 +265,20 @@ class _DiscountState extends State<Discount> {
                               ),
                             );
                           },
-                        ).then((selectedCount) {
-                          if (selectedCount != null) {
+                        ).then((String? selectedString) {
+                          if (selectedString != null) {
                             setState(() {
-                              selectedItemCount = selectedCount;
+                              selectedItemCount = selectedString;
                             });
                           }
                         });
+                        // .then((selectedString) {
+                        //   if (selectedCount != null) {
+                        //     setState(() {
+                        //       selectedItemCount = selectedCount;
+                        //     });
+                        //   }
+                        // });
                       },
                       child: Container(
                         width: 20,
@@ -324,7 +352,7 @@ class _DiscountState extends State<Discount> {
           top: 8.0,
           left: 8.0,
           right: 8.0,
-          bottom: 25.0,
+          bottom: 30.0,
         ),
         child: ElevatedButton(
           onPressed: () async {
@@ -335,7 +363,17 @@ class _DiscountState extends State<Discount> {
             widget.updateCart();
             Navigator.pop(context);
           },
-          child: Text('Apply'),
+          style: ElevatedButton.styleFrom(
+            // Set the desired height and width here
+            fixedSize: Size(340, 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ), // Change the values according to your needs
+          ),
+          child: Text(
+            'Apply',
+            style: TextStyle(fontSize: 18),
+          ),
         ),
       ),
     );

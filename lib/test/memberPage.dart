@@ -11,7 +11,7 @@ class CarMemberPage extends StatefulWidget {
   const CarMemberPage({super.key, required this.updateData});
 
   final Function updateData;
-
+ 
   @override
   State<CarMemberPage> createState() => _CarMemberPageState();
 }
@@ -358,6 +358,7 @@ class _CarMemberPageState extends State<CarMemberPage>
           final memberName = memberList[index]['name'];
 
           await createOrder(memberID.toString());
+        //  widget.fetchData();
 
           var orderID = order[0]['orderID'].toString();
 
@@ -838,8 +839,6 @@ class _CarMemberPageState extends State<CarMemberPage>
       setState(() {
         order = body['orders'];
       });
-
-      print("order: $order");
       widget.updateData();
 
       // dynamic wOrder = walkinOrder.firstWhere(

@@ -226,8 +226,8 @@ class _AllProductsState extends State<AllProducts> {
         var sku = products.firstWhere((sku) => sku['skuID'] == skuID);
         double sellingPrice = sku['selling']?.toDouble() ?? 0.0;
 
-        selectedProduct[skuID]!['selling'] =
-            (selectedProduct[skuID]!['quantity']! * sellingPrice).toInt();
+        // selectedProduct[skuID]!['selling'] =
+        //     (selectedProduct[skuID]!['quantity']! * sellingPrice).toInt();
       } else {
         var sku = products.firstWhere((sku) => sku['skuID'] == skuID);
         selectedProduct[skuID] = {
@@ -244,7 +244,7 @@ class _AllProductsState extends State<AllProducts> {
       // Update the value of totalServiceQuantityNotifier
       ptotalQuantityNotifier.value = totalProductQuantity;
       getProductTotalPrice();
-      print(selectedProduct);
+      
     });
   }
 
@@ -257,9 +257,9 @@ class _AllProductsState extends State<AllProducts> {
       if (selectedProduct.containsKey(skuID)) {
         quantity++;
         selectedProduct[skuID]!['quantity'] = quantity;
-        print("quantity:$quantity");
-        selectedProduct[skuID]!['selling'] =
-            (selectedProduct[skuID]!['quantity']! * sellingPrice).toInt();
+      
+        // selectedProduct[skuID]!['selling'] =
+        //     (selectedProduct[skuID]!['quantity']! * sellingPrice).toInt();
       } else {
         var sku = products.firstWhere((sku) => sku['skuID'] == skuID);
 
@@ -269,12 +269,11 @@ class _AllProductsState extends State<AllProducts> {
           'quantity': quantity,
           'skuID': skuID,
         };
-        print("else:$quantity");
+      
       }
       int totalQuantity =
           getProductTotalQuantity(); // Calculate the total quantity
-      print("Total Quantity: $totalQuantity");
-      print(selectedProduct);
+     
       getProductTotalPrice();
     });
   }
@@ -307,7 +306,7 @@ class _AllProductsState extends State<AllProducts> {
       // Update the value of totalServiceQuantityNotifier
       ptotalQuantityNotifier.value = totalProductQuantity;
       getProductTotalPrice();
-      print(selectedProduct);
+      
     });
   }
 

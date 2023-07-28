@@ -6,7 +6,6 @@ import '../api.dart';
 import '../cart.dart';
 import '../function.dart';
 
-
 class TrialSelectItem extends StatefulWidget {
   TrialSelectItem({
     Key? key,
@@ -14,7 +13,7 @@ class TrialSelectItem extends StatefulWidget {
     required this.skus,
     required this.onSkusSelected,
   });
-   List<dynamic> otems;
+  List<dynamic> otems;
   final List<dynamic> skus;
   final Function(Map<String, String>) onSkusSelected;
 
@@ -27,11 +26,11 @@ class _TrialSelectItemState extends State<TrialSelectItem> {
 
   bool okTapped = false;
   bool showRefresh = false;
+  bool isAllItemsSelected = false;
 
   int? selectedStaffIndex;
   Set<int> selectedItems = {};
   int selectedItemCount = 0;
-  bool isAllItemsSelected = false;
 
   void updateSelectedItems(Set<int> updatedSelectedItems) {
     setState(() {
@@ -57,8 +56,9 @@ class _TrialSelectItemState extends State<TrialSelectItem> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        title: Text(
-          "Select Items ${selectedItems.length}",
+        title: const Text(
+          "Select Items ",
+          //  "Select Items ${selectedItems.length}",
           style: TextStyle(color: Colors.black),
         ),
         leading: xIcon(),
@@ -68,12 +68,8 @@ class _TrialSelectItemState extends State<TrialSelectItem> {
             child: TextButton(
               onPressed: selectAllItems,
               child: Text(
-                'Select All',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.blue,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                isAllItemsSelected ? "Deselect all" : "Select all",
+                style: TextStyle(color: Colors.blue, fontSize: 14),
               ),
             ),
           ),
@@ -110,16 +106,18 @@ class _TrialSelectItemState extends State<TrialSelectItem> {
   void selectAllItems() {
     setState(() {
       if (isAllItemsSelected) {
-        selectedItems = {};
-        selectedSkus = {};
+        // If all items are already selected, then deselect all items.
+        selectedItems.clear();
+        selectedSkus.clear();
       } else {
-        selectedItems =
-            Set<int>.from(List.generate(skus.length, (index) => index));
-        selectedSkus = Map.fromIterables(
-          selectedItems.map((index) => index.toString()),
-          skus.map((sku) => sku['skuID'].toString()),
-        );
+        // If not all items are selected, then select all items.
+        for (int index = 0; index < widget.otems.length; index++) {
+          selectedItems.add(index);
+          final sku = widget.otems[index];
+          selectedSkus[index.toString()] = sku['otemID'].toString();
+        }
       }
+      // 3. Update the isAllItemsSelected variable.
       isAllItemsSelected = !isAllItemsSelected;
     });
   }
@@ -141,10 +139,10 @@ class _TrialSelectItemState extends State<TrialSelectItem> {
             itemCount: widget.otems.length,
             itemBuilder: (context, index) {
               final sku = widget.otems[index];
-              dynamic ssku = widget.skus.firstWhere((ssku) =>
-                                    ssku['skuID'] == widget.skus[index]['skuID']);
+              dynamic ssku = widget.skus.firstWhere(
+                  (ssku) => ssku['skuID'] == widget.skus[index]['skuID']);
               print("staff ssku : $ssku");
-              
+
               final item2 = ssku;
               final isSelected =
                   isAllItemsSelected || selectedItems.contains(index);
@@ -249,7 +247,14 @@ class _TrialSelectItemState extends State<TrialSelectItem> {
           onPressed: () {
             setState(() {});
             widget.onSkusSelected(selectedSkus);
-            Navigator.pop(context, selectedItems.length);
+          final int totalSelected = selectedItems.length;
+            final int totalItems = widget.otems.length;
+            final String selectedItemText =
+                totalSelected == totalItems ? "All" : "$totalSelected";
+
+            // print("hhhh: $selectedItemText");
+
+            Navigator.pop(context, selectedItemText);
             print('Pass total selected container: $selectedItems');
           },
           child: Text('Ok'),

@@ -12,14 +12,16 @@ import '../test/cashier.dart';
 import 'login.dart';
 
 class TrialPaymentReceipt extends StatefulWidget {
-  const TrialPaymentReceipt(
+  TrialPaymentReceipt(
       {required this.receiptCalculateSubtotal,
       required this.cartOrderId,
       required this.otems,
+      required this.afterroundedNumber,
       Key? key});
   final double receiptCalculateSubtotal;
   final String cartOrderId;
   final List<dynamic> otems;
+  double afterroundedNumber;
 
   @override
   State<TrialPaymentReceipt> createState() => _TrialPaymentReceiptState();
@@ -33,6 +35,7 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
 
   @override
   Widget build(BuildContext context) {
+    print("value run: ${widget.afterroundedNumber.toStringAsFixed(2)}");
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -300,12 +303,43 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
           padding: EdgeInsets.all(16),
           child: ElevatedButton(
             onPressed: () {
-              double sub = widget.receiptCalculateSubtotal;
-
-              // print('Check dekat receipt: $storeServiceAndProduct');
-
-              completeOrder(sub);
-              // complete(sub);
+              // double sub = widget.receiptCalculateSubtotal;
+              // completeOrderBaru(sub);
+              showCupertinoDialog(
+                context: context,
+                builder: (BuildContext context) => CupertinoAlertDialog(
+                  title: const Text("Order Completed"),
+                  content: Column(
+                    children: [
+                      CupertinoDialogAction(
+                        child: const Text("Print receipt"),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                      CupertinoDialogAction(
+                        child: const Text("E-receipt"),
+                        onPressed: () {
+                          // Call your print function here
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    CupertinoDialogAction(
+                      child: const Text("Close"),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => FirstPage()),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              );
             },
             child: const Text(
               'Done',
@@ -337,19 +371,112 @@ class _TrialPaymentReceiptState extends State<TrialPaymentReceipt> {
         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/complete');
 
     var collections = [
-      {
-        "paymentTypeID": 1, 
-        "amount": sub.toStringAsFixed(2)},
+      {"paymentTypeID": 1, "amount": sub.toStringAsFixed(2)},
     ];
 
     var items = widget.otems.map((item) {
       return {
         "skuID": item['skuID'],
-        "priceAmt": item['price'] - item['discount'],
+        "priceAmt": (item['price'] * item['quantity']) - item['discount'],
       };
     }).toList();
 
     var data = {
+      "collections": collections,
+      "items": items,
+    };
+
+    print("data: $data");
+
+    var response = await http.post(
+      url,
+      headers: headers,
+      body: json.encode(data),
+    );
+
+    if (response.statusCode == 200) {
+      print(utf8.decode(response.bodyBytes));
+      print('SUCCESS');
+
+      showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: const Text("Order Completed"),
+          content: Column(
+            children: [
+              CupertinoDialogAction(
+                child: const Text("Print receipt"),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              CupertinoDialogAction(
+                child: const Text("E-receipt"),
+                onPressed: () {
+                  // Call your print function here
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text("Close"),
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => FirstPage()),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => FirstPage()),
+      // );
+    } else {
+      print(response.reasonPhrase);
+      print('SILA SAMBUNG STRESS');
+    }
+  }
+
+  Future<void> completeOrderBaru(double sub) async {
+    print('Check dekat receipt: ${widget.receiptCalculateSubtotal}');
+    print('Check ORDDER ID: ${widget.cartOrderId}');
+
+    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+
+    var url = Uri.parse(
+        'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/complete');
+
+    var roundup = widget.afterroundedNumber.toStringAsFixed(2);
+
+    var collections = [
+      {"paymentTypeID": 1, "amount": sub.toStringAsFixed(2)},
+    ];
+
+    var items = <Map<String, dynamic>>[];
+    widget.otems.forEach((item) {
+      int quantity = item['quantity'];
+      int outstandAmt = item['outstandings'];
+      double discount = item['discount'].toDouble();
+      var priceAmt = item['price'] - discount - outstandAmt;
+      for (int i = 0; i < quantity; i++) {
+        items.add({
+          "groupID": item["otemID"],
+          "skuID": item["skuID"],
+          "priceAmt": priceAmt,
+          "outstandAmt": outstandAmt,
+          "discountAmt": discount
+        });
+      }
+    });
+
+    var data = {
+      "roundup": roundup,
       "collections": collections,
       "items": items,
     };

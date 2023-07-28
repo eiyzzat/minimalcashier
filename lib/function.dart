@@ -25,7 +25,7 @@ class APIFunctions {
       //message untuk save data dalam
       Map<String, dynamic> minimal = body;
 
-      staff = minimal['staffs'];
+      staff =minimal['staffs'].where((staffData) => staffData['deleteDate'] == 0).toList();
       return staff;
     } else {
       print(response.reasonPhrase);

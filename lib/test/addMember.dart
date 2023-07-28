@@ -4,9 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../main.dart';
-import '../ordersPending.dart';
-import 'firstPage.dart';
 import 'login.dart';
 
 class AddMember extends StatefulWidget {
@@ -544,7 +541,7 @@ class _AddMemberState extends State<AddMember> {
       //         );
       // });
 
-      print("Done member");
+      // print("Done member");
     } else {
       print(response.reasonPhrase);
     }

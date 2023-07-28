@@ -2,13 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:minimal/pending.dart';
+import 'package:minimal/test/payment_sheet.dart';
 import 'package:minimal/test/trialEditItem.dart';
-import 'package:minimal/test/trialPayment.dart';
-import '../api.dart';
 import 'dart:convert';
-
 import '../discount.dart';
-
 import 'login.dart';
 
 class TrialCart extends StatefulWidget {
@@ -18,12 +15,14 @@ class TrialCart extends StatefulWidget {
       required this.cartOrderId,
       required this.otems,
       required this.totalItems,
-      required this.totalPrice})
+      required this.totalPrice,
+      required this.fetchData})
       : super(key: key);
 
   final String cartName;
   final String cartOrderId;
   List<dynamic> otems;
+  final Function fetchData;
 
   int totalItems;
   double totalPrice;
@@ -35,7 +34,6 @@ class TrialCart extends StatefulWidget {
 Map<String, List<Map<String, dynamic>>> typeIDMap = {};
 
 String selectedstaffID = '';
-// List<dynamic> otemsDalanCart = [];
 List<dynamic> skus = [];
 
 double newTotalPrice = 0.0;
@@ -57,10 +55,14 @@ class _TrialCart extends State<TrialCart> {
   int? selectedStaffIndex;
   double latestDiscount = 0;
 
+  double afterroundedNumber = 0.0;
+  double cartFinalPRice = 0.0;
+
   @override
   void initState() {
     super.initState();
     fetchData();
+    updateCart();
     apigetStaff();
   }
 
@@ -85,8 +87,8 @@ class _TrialCart extends State<TrialCart> {
     updateDiscount() {
       setState(() {
         newDiscount = calcDisc(widget.otems);
-        totalDiscount = widget.otems.fold(
-            0, (sum, otems) => sum + double.parse(otems['discount'].toString()));
+        totalDiscount = widget.otems.fold(0,
+            (sum, otems) => sum + double.parse(otems['discount'].toString()));
       });
       // print("Total Disc dalam update: $totalDiscount");
     }
@@ -97,8 +99,8 @@ class _TrialCart extends State<TrialCart> {
     int nakDisplayQuantity = widget.otems
         .fold(0, (sum, otems) => sum + int.parse(otems['quantity'].toString()));
 
-    totalDiscount = widget.otems
-        .fold(0, (sum, otems) => sum + double.parse(otems['discount'].toString()));
+    totalDiscount = widget.otems.fold(
+        0, (sum, otems) => sum + double.parse(otems['discount'].toString()));
 
     double totalSubtotal = widget.otems
         .fold(0, (sum, otems) => sum + otems['price'] * otems['quantity']);
@@ -107,13 +109,21 @@ class _TrialCart extends State<TrialCart> {
 
     double allTotal = totalSubtotal - allDiscount;
 
-    print(widget.totalPrice);
+    double testRounded = roundToNearestFiveCents(allTotal);
+    double resultRounded = testRounded - allTotal;
+
+    // double roundedNumber = 0.0;
+
+    // print(widget.totalPrice);
+
+    double screenWidth = MediaQuery.of(context).size.width - 30;
+    double width = screenWidth / 3;
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.white,
           centerTitle: true,
           title: Text(
-            widget.cartName,
+            widget.cartName.isNotEmpty ? widget.cartName : "Walk-in",
             style: const TextStyle(color: Colors.black),
           ),
           leading: IconButton(
@@ -122,23 +132,10 @@ class _TrialCart extends State<TrialCart> {
               height: 20,
               width: 20,
             ),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, widget.fetchData()),
             iconSize: 24,
           ),
           actions: [
-            // IconButton(
-            //   icon: const Icon(
-            //     Icons.delete,
-            //     size: 40,
-            //     color: Colors.red,
-            //   ),
-            //   onPressed: ()async {
-            //     await deleteAll(widget.otems);
-            //     updateCart();
-            //     // updateQuantity();
-            //     // setState(() {});
-            //   },
-            // ),
             IconButton(
               icon: const Icon(
                 Icons.delete,
@@ -177,10 +174,6 @@ class _TrialCart extends State<TrialCart> {
                               );
                             } else {
                               typeIDMap.clear();
-
-                              // print(skus);
-                              // print(widget.otems);
-
                               for (int i = 0; i < widget.otems.length; i++) {
                                 dynamic sku = skus.firstWhere((sku) =>
                                     sku['skuID'] == widget.otems[i]['skuID']);
@@ -230,9 +223,9 @@ class _TrialCart extends State<TrialCart> {
                                   final typeName = getTypeName(typeID);
                                   final itemList = typeIDMap[typeID]!;
 
-                                  print("itemList:");
+                                  // print("itemList:");
 
-                                  print(itemList);
+                                  // print(itemList);
 
                                   if (itemList.isEmpty) {
                                     return Container();
@@ -258,7 +251,7 @@ class _TrialCart extends State<TrialCart> {
                                         physics: const ScrollPhysics(),
                                         itemCount: itemList.length,
                                         itemBuilder: (context, index) {
-                                          print("itemlist $itemList");
+                                          // print("itemlist $itemList");
                                           final itemData = itemList[index];
                                           var otemID =
                                               itemData['otemID'].toString();
@@ -324,11 +317,52 @@ class _TrialCart extends State<TrialCart> {
                                                       Icons.delete,
                                                       color: Colors.white),
                                                 ),
+                                                // onDismissed: (direction) async {
+                                                //   await deleteItem(otemID);
+                                                //   updateCart();
+                                                //   // fetchData();
+                                                //   print(otemID);
+                                                // },
+                                                confirmDismiss:
+                                                    (direction) async {
+                                                  return await showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      return CupertinoAlertDialog(
+                                                        title: const Text(
+                                                            "Confirmation"),
+                                                        content: const Text(
+                                                            "Are you sure you want to delete this service / product?"),
+                                                        actions: [
+                                                          CupertinoDialogAction(
+                                                            onPressed: () =>
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop(
+                                                                        false), // No button
+                                                            child: const Text(
+                                                                "No"),
+                                                          ),
+                                                          CupertinoDialogAction(
+                                                            onPressed: () =>
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop(
+                                                                        true), // Yes button
+                                                            child: const Text(
+                                                                "Yes"),
+                                                            isDestructiveAction:
+                                                                true,
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                },
                                                 onDismissed: (direction) async {
                                                   await deleteItem(otemID);
                                                   updateCart();
-                                                  // fetchData();
-                                                  print(otemID);
                                                 },
                                                 child: InkWell(
                                                   onTap: () async {
@@ -642,7 +676,7 @@ class _TrialCart extends State<TrialCart> {
         bottomNavigationBar: SizedBox(
           height: 300,
           child: BottomAppBar(
-            elevation: 0,
+            // elevation: 0,
             child: Container(
               width: double.infinity,
               height: 300,
@@ -653,7 +687,7 @@ class _TrialCart extends State<TrialCart> {
                   Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         GestureDetector(
                           onTap: () {
@@ -675,31 +709,33 @@ class _TrialCart extends State<TrialCart> {
                               },
                             ).then((value) {});
                           },
+                          //container staff
                           child: Container(
-                            width: 120,
-                            height: 30,
+                            width: width,
+                            height: 38,
                             decoration: BoxDecoration(
                               color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(5.0),
+                              borderRadius: BorderRadius.circular(8.0),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Image.asset(
                                   'lib/assets/Staff.png',
-                                  height: 25,
-                                  width: 30,
+                                  height: 18,
+                                  width: 18,
                                 ),
                                 const SizedBox(width: 10),
                                 const Text(
                                   'Staff',
                                   style: TextStyle(
-                                      fontSize: 16, color: Colors.black),
+                                      fontSize: 12, color: Colors.grey),
                                 ),
                               ],
                             ),
                           ),
                         ),
+                        const SizedBox(width: 5),
                         //Container Discount
                         InkWell(
                           onTap: () async {
@@ -709,7 +745,7 @@ class _TrialCart extends State<TrialCart> {
                               isScrollControlled: true,
                               shape: const RoundedRectangleBorder(
                                   borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(20))),
+                                      top: Radius.circular(8))),
                               builder: (BuildContext context) {
                                 return SizedBox(
                                   height: 750,
@@ -741,30 +777,31 @@ class _TrialCart extends State<TrialCart> {
                             }
                           },
                           child: Container(
-                            width: 120,
-                            height: 30,
+                            width: width,
+                            height: 38,
                             decoration: BoxDecoration(
                               color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(5.0),
+                              borderRadius: BorderRadius.circular(8.0),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Image.asset(
                                   'lib/assets/Discount.png',
-                                  height: 25,
-                                  width: 30,
+                                  height: 18,
+                                  width: 18,
                                 ),
                                 const SizedBox(width: 10),
                                 const Text(
                                   'Discount',
                                   style: TextStyle(
-                                      fontSize: 16, color: Colors.black),
+                                      fontSize: 12, color: Colors.grey),
                                 ),
                               ],
                             ),
                           ),
                         ),
+                        const SizedBox(width: 5),
                         //Container Printer
                         GestureDetector(
                           onTap: () {
@@ -792,25 +829,25 @@ class _TrialCart extends State<TrialCart> {
                             );
                           },
                           child: Container(
-                            width: 120,
-                            height: 30,
+                            width: width,
+                            height: 38,
                             decoration: BoxDecoration(
                               color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(5.0),
+                              borderRadius: BorderRadius.circular(8.0),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Image.asset(
                                   'lib/assets/Printer.png',
-                                  height: 25,
-                                  width: 30,
+                                  height: 18,
+                                  width: 18,
                                 ),
                                 const SizedBox(width: 10),
                                 const Text(
                                   'Print',
                                   style: TextStyle(
-                                      fontSize: 16, color: Colors.black),
+                                      fontSize: 12, color: Colors.grey),
                                 ),
                               ],
                             ),
@@ -854,7 +891,8 @@ class _TrialCart extends State<TrialCart> {
                       Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: Text(
-                          totalSubtotal.toStringAsFixed(2),
+                          // totalSubtotal.toStringAsFixed(2),
+                          allTotal.toStringAsFixed(2),
                           style: const TextStyle(
                               fontSize: 16, color: Colors.black),
                         ),
@@ -883,6 +921,31 @@ class _TrialCart extends State<TrialCart> {
                       ],
                     ),
                   ),
+                  Visibility(
+                    visible: roundToNearestFiveCents(allTotal) != 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text(
+                            'Roundup', // Change 'Discount' to 'Roundup'
+                            style: TextStyle(fontSize: 16, color: Colors.black),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Text(
+                            resultRounded.toStringAsFixed(
+                                2), // Use roundToNearestFiveCents function
+                            style: TextStyle(fontSize: 16, color: Colors.green),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Spacer(),
+
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Container(
@@ -891,7 +954,7 @@ class _TrialCart extends State<TrialCart> {
                       child: ElevatedButton(
                         onPressed: () {
                           // print(calcDisc(widget.otems));
-                          print("what's in otem: ${widget.otems}");
+                          // print("what's in otem: ${widget.otems}");
 
                           // print(newTotalItem);
                           showModalBottomSheet<void>(
@@ -903,16 +966,25 @@ class _TrialCart extends State<TrialCart> {
                             builder: (BuildContext context) {
                               return SizedBox(
                                   height: 750,
-                                  child: TrialPaymentPage(
-                                    calculateSubtotal: allTotal,
-                                    cartOrderId: widget.cartOrderId,
+                                  child: PaymentSheet(
+                                    finalPrice: testRounded,//yg display dekat payment
+                                    orderId: widget.cartOrderId,
+                                    roundedPrice: testRounded,
                                     otems: widget.otems,
+                                    roundvalue: resultRounded,//nilai rounded
                                   ));
+
+                              // child: TrialPaymentPage(
+                              //   calculateSubtotal: testRounded,
+                              //   cartOrderId: widget.cartOrderId,
+                              //   otems: widget.otems, afterroundedNumber: resultRounded,
+                              // ));
                             },
                           );
                         },
                         child: Text(
-                          'Payment: ' + allTotal.toStringAsFixed(2),
+                          // 'Payment: ${finalPrice(allTotal).toStringAsFixed(2)}',
+                          'Payment: ${testRounded.toStringAsFixed(2)}',
                           style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
@@ -925,7 +997,31 @@ class _TrialCart extends State<TrialCart> {
               ),
             ),
           ),
+          
         ));
+  }
+
+  // double roundToNearestFiveCents(double allTotal) {
+  //   setState(() {
+  //     double roundedNumber = (allTotal * 20).roundToDouble() / 20;
+  //     // afterroundedNumber = allTotal - roundedNumber;
+  //       afterroundedNumber = roundedNumber;
+  //   });
+  //   print("value ru: $afterroundedNumber");
+  //   return afterroundedNumber;
+  // }
+
+  double roundToNearestFiveCents(double allTotal) {
+    double roundedNumber = (allTotal * 20).roundToDouble() / 20;
+    return roundedNumber;
+  }
+
+  double finalPrice(allTotal) {
+    setState(() {
+      cartFinalPRice = allTotal - afterroundedNumber;
+    });
+
+    return cartFinalPRice;
   }
 
   updateQuantity() {
@@ -935,8 +1031,6 @@ class _TrialCart extends State<TrialCart> {
       nakDisplayQuantity = widget.otems.fold(
           0, (sum, otems) => sum + int.parse(otems['quantity'].toString()));
     });
-    print(" ${widget.totalItems} ");
-    print(" $nakDisplayQuantity ");
   }
 
   Future fetchData() async {
@@ -964,7 +1058,6 @@ class _TrialCart extends State<TrialCart> {
         // });
       }
 
-      print("otems fetchData: ${widget.otems}");
 
       return widget.otems;
     } else {
@@ -990,9 +1083,9 @@ class _TrialCart extends State<TrialCart> {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      print(await response.stream.bytesToString());
-      print(widget.cartOrderId);
-      print("done");
+      // print(await response.stream.bytesToString());
+      // print(widget.cartOrderId);
+      // print("done");
     } else {
       print(response.reasonPhrase);
     }
@@ -1015,7 +1108,7 @@ class _TrialCart extends State<TrialCart> {
       http.StreamedResponse response = await request.send();
 
       if (response.statusCode == 200) {
-        print(await response.stream.bytesToString());
+        // print(await response.stream.bytesToString());
       } else {
         print(response.reasonPhrase);
       }
@@ -1063,7 +1156,7 @@ class _TrialCart extends State<TrialCart> {
     });
   }
 
-    apigetStaff() async {
+  Future<void> apigetStaff() async {
     var headers = {
       'token': tokenGlobal,
     };
@@ -1079,18 +1172,12 @@ class _TrialCart extends State<TrialCart> {
       final responsebody = await response.stream.bytesToString();
       final body = json.decode(responsebody);
       //message untuk save data dalam
-       
 
-     setState(() {
-    staff = body['staffs'];
-  });
-
-      print("dalam getStaff: $staff");
-      return staff;
+      setState(() {
+        staff = body['staffs'];
+      });
     } else {
       print(response.reasonPhrase);
     }
   }
-
-  
 }

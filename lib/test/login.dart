@@ -30,6 +30,15 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Text(
+                  "TunaiBiz",
+                  style: TextStyle(
+                    color: Colors.blue, // Change the color here
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.bold // Change the font size here
+                  ),
+                ),
+                SizedBox(height: 15),
                 TextFormField(
                   controller: usernameController,
                   decoration: InputDecoration(
@@ -48,17 +57,29 @@ class _LoginPageState extends State<LoginPage> {
                     suffixIcon: Icon(Icons.password),
                   ),
                 ),
-                SizedBox(height: 45),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    login();
-                  },
-                  icon: Icon(
-                    Icons.login,
-                    size: 18,
+                SizedBox(height: 25),
+                // OutlinedButton.icon(
+                //   onPressed: () {
+                //     login();
+                //   },
+                //   icon: Icon(
+                //     Icons.login,
+                //     size: 18,
+                //   ),
+                //   label: Text("Login"),
+                // ),
+                SizedBox(
+                  width: double.infinity,
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      login();
+                    },
+                    child: const Text(
+                      "Login ",
+                    ),
                   ),
-                  label: Text("Login"),
-                ),
+                )
               ],
             ),
           ),
