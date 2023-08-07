@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:minimal/pending.dart';
 import 'package:minimal/testingSelectStaff.dart';
-import '../api.dart';
-import '../cart.dart';
+import 'exercises/api.dart';
 import '../function.dart';
 import 'discount.dart';
 

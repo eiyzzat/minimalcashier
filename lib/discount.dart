@@ -1,14 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:minimal/pending.dart';
-import 'package:minimal/test/discountItem.dart';
-import 'package:minimal/test/login.dart';
-import 'package:minimal/testingSelectStaff.dart';
-import '../api.dart';
-import '../cart.dart';
-import '../function.dart';
-import 'discount.dart';
+import 'package:minimal/discount_item.dart';
+import 'package:minimal/login.dart';
 
 class Discount extends StatefulWidget {
   Discount(
@@ -38,6 +31,22 @@ class _DiscountState extends State<Discount> {
 
   TextEditingController discController = TextEditingController();
   TextEditingController discountPercentageController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+
+    discController.addListener(() {
+      if (discController.text.isNotEmpty) {
+        discountPercentageController.text = '';
+      }
+    });
+
+    discountPercentageController.addListener(() {
+      if (discountPercentageController.text.isNotEmpty) {
+        discController.text = '';
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +98,7 @@ class _DiscountState extends State<Discount> {
   Widget hi2() {
     return Column(children: [
       Padding(
-        padding: const EdgeInsets.only(top: 8.0,left: 4, right: 8),
+        padding: const EdgeInsets.only(top: 8.0, left: 4, right: 8),
         child: Row(
           children: [
             Expanded(
@@ -131,21 +140,19 @@ class _DiscountState extends State<Discount> {
                                     child: TextField(
                                       controller: discController,
                                       decoration: const InputDecoration(
-                                        labelText: 'Type here',
+                                        labelText: 'Enter discount',
                                         floatingLabelBehavior:
                                             FloatingLabelBehavior.never,
                                         border: InputBorder.none,
                                       ),
                                       keyboardType: TextInputType.number,
-                                       style: TextStyle(
-                                     
-                                      color: Colors.green,
-                                      fontSize: 14,
-                                      fontFamily: 'SFProDisplay',
-                                      fontWeight: FontWeight.normal,
+                                      style: TextStyle(
+                                        color: Colors.green,
+                                        fontSize: 14,
+                                        fontFamily: 'SFProDisplay',
+                                        fontWeight: FontWeight.normal,
+                                      ),
                                     ),
-                                    ),
-                                    
                                   ),
                                 ),
                               ],
@@ -161,8 +168,8 @@ class _DiscountState extends State<Discount> {
             const SizedBox(width: 8),
             Expanded(
               child: Container(
-                 width: 165,
-                  height: 62,
+                width: 165,
+                height: 62,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10.0),
@@ -195,14 +202,13 @@ class _DiscountState extends State<Discount> {
                                   child: TextField(
                                     controller: discountPercentageController,
                                     decoration: InputDecoration(
-                                      labelText: 'Type here',
+                                      labelText: 'Enter discount',
                                       floatingLabelBehavior:
                                           FloatingLabelBehavior.never,
                                       border: InputBorder.none,
                                     ),
                                     keyboardType: TextInputType.number,
                                     style: TextStyle(
-                                     
                                       color: Colors.green,
                                       fontSize: 14,
                                       fontFamily: 'SFProDisplay',
@@ -258,7 +264,7 @@ class _DiscountState extends State<Discount> {
                           builder: (BuildContext context) {
                             return SizedBox(
                               height: 750,
-                              child: TrialSelectItemForDiscount(
+                              child: ItemForDiscount(
                                 otems: widget.otems,
                                 onSkusSelected: handleSkusSelected,
                                 skus: widget.skus,
@@ -272,13 +278,6 @@ class _DiscountState extends State<Discount> {
                             });
                           }
                         });
-                        // .then((selectedString) {
-                        //   if (selectedCount != null) {
-                        //     setState(() {
-                        //       selectedItemCount = selectedCount;
-                        //     });
-                        //   }
-                        // });
                       },
                       child: Container(
                         width: 20,
@@ -358,7 +357,7 @@ class _DiscountState extends State<Discount> {
           onPressed: () async {
             matchingValue();
             // print("discount value: $discountValue");
-            print(selectedSkus);
+            // print(selectedSkus);
             await trialchangeDiscount(selectedSkus);
             widget.updateCart();
             Navigator.pop(context);
@@ -398,8 +397,8 @@ class _DiscountState extends State<Discount> {
     int quantity = 0;
     double price = 0.0;
 
-    print("itemIDs: $itemIDs");
-    print("otemsssss: ${widget.otems}");
+    // print("itemIDs: $itemIDs");
+    // print("otemsssss: ${widget.otems}");
 
     for (var i = 0; i < itemIDs.length; i++) {
       var matchingOtem = widget.otems.firstWhere(

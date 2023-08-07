@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:minimal/test/login.dart';
-import 'package:minimal/test/staffItem.dart';
+import 'package:minimal/login.dart';
+import 'package:minimal/cart_staff_item.dart';
+import 'package:minimal/cart.dart';
 import 'package:minimal/testingSelectStaff.dart';
-import '../api.dart';
-import '../cart.dart';
+import 'exercises/api.dart';
 import '../function.dart';
 import 'discount.dart';
 
@@ -1380,954 +1380,954 @@ class _StaffInEditItemState extends State<StaffInEditItem> {
 }
 //showModalBottom for staff button in cart
 
-class StaffPart extends StatefulWidget {
-  const StaffPart(
-      {Key? key,
-      required this.cartOrderId,
-      required this.otems,
-      required this.skus,
-      required this.updateCart});
+// class StaffPart extends StatefulWidget {
+//   const StaffPart(
+//       {Key? key,
+//       required this.cartOrderId,
+//       required this.otems,
+//       required this.skus,
+//       required this.updateCart});
 
-  final String cartOrderId;
+//   final String cartOrderId;
 
-  final List<dynamic> otems;
-  final List<dynamic> skus;
-  final Function updateCart;
+//   final List<dynamic> otems;
+//   final List<dynamic> skus;
+//   final Function updateCart;
 
-  @override
-  State<StaffPart> createState() => _StaffPartState();
-}
+//   @override
+//   State<StaffPart> createState() => _StaffPartState();
+// }
 
-class _StaffPartState extends State<StaffPart> {
-  Set<int> _selectedIndices = Set<int>();
+// class _StaffPartState extends State<StaffPart> {
+//   Set<int> _selectedIndices = Set<int>();
 
-  bool isCustomTapped = false;
-  bool okTapped = false;
-  bool showRefresh = false;
+//   bool isCustomTapped = false;
+//   bool okTapped = false;
+//   bool showRefresh = false;
 
-  int? selectedStaffIndex;
+//   int? selectedStaffIndex;
 
-  Map<String, dynamic>? selectedStaffDetails;
+//   Map<String, dynamic>? selectedStaffDetails;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        centerTitle: true,
-        shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-        title: const Text(
-          'Select Staff',
-          style: TextStyle(color: Colors.black),
-        ),
-        leading: xIcon(),
-      ),
-      body: Stack(
-        children: [
-          Container(
-            color: Colors.grey[200],
-          ),
-          Column(
-            children: [
-              hi(), // Call hi() method here to display the staff list
-            ],
-          ),
-        ],
-      ),
-      bottomNavigationBar: addButton(),
-    );
-  }
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.transparent,
+//       appBar: AppBar(
+//         backgroundColor: Colors.white,
+//         centerTitle: true,
+//         shape: const RoundedRectangleBorder(
+//             borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+//         title: const Text(
+//           'Select Staff',
+//           style: TextStyle(color: Colors.black),
+//         ),
+//         leading: xIcon(),
+//       ),
+//       body: Stack(
+//         children: [
+//           Container(
+//             color: Colors.grey[200],
+//           ),
+//           Column(
+//             children: [
+//               hi(), // Call hi() method here to display the staff list
+//             ],
+//           ),
+//         ],
+//       ),
+//       bottomNavigationBar: addButton(),
+//     );
+//   }
 
-  Widget xIcon() {
-    return IconButton(
-      icon: Image.asset(
-        "lib/assets/Artboard 40.png",
-        height: 30,
-        width: 20,
-      ),
-      onPressed: () => Navigator.pop(context),
-      iconSize: 24,
-    );
-  }
+//   Widget xIcon() {
+//     return IconButton(
+//       icon: Image.asset(
+//         "lib/assets/Artboard 40.png",
+//         height: 30,
+//         width: 20,
+//       ),
+//       onPressed: () => Navigator.pop(context),
+//       iconSize: 24,
+//     );
+//   }
 
-  Widget hi() {
-    Future staffData = APIFunctions.getStaff();
+//   Widget hi() {
+//     Future staffData = APIFunctions.getStaff();
 
-    // print("otem dalam staff : ${otems}");
+//     // print("otem dalam staff : ${otems}");
 
-    return Expanded(
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top:10.0,left:12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    'Staff list',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontFamily:
-                          'SFProDisplay', // Use the specified font family
-                      fontWeight: FontWeight.normal,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FutureBuilder(
-                future: staffData,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  } else {
-                    return StatefulBuilder(
-                      builder: (context, setState) {
-                        return GridView.builder(
-                          physics: const ScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: staff.length,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 10,
-                            crossAxisSpacing: 10,
-                            childAspectRatio: 2.5,
-                          ),
-                          itemBuilder: (context, index) {
-                            var staffDetails = staff[index];
-                            var name = staffDetails['name'];
-                            String mobileNumber =
-                                staffDetails['mobile'].toString();
-                            String formattedNumber =
-                                '(${mobileNumber.substring(0, 4)}) ${mobileNumber.substring(4, 7)}-${mobileNumber.substring(7)}';
+//     return Expanded(
+//       child: SingleChildScrollView(
+//         child: Column(
+//           children: [
+//             Padding(
+//               padding: const EdgeInsets.only(top:10.0,left:12),
+//               child: Row(
+//                 mainAxisAlignment: MainAxisAlignment.start,
+//                 children: [
+//                   Text(
+//                     'Staff list',
+//                     style: const TextStyle(
+//                       fontSize: 16,
+//                       fontFamily:
+//                           'SFProDisplay', // Use the specified font family
+//                       fontWeight: FontWeight.normal,
+//                       color: Colors.black,
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//             Padding(
+//               padding: const EdgeInsets.all(8.0),
+//               child: FutureBuilder(
+//                 future: staffData,
+//                 builder: (context, snapshot) {
+//                   if (!snapshot.hasData) {
+//                     return Center(
+//                       child: CircularProgressIndicator(),
+//                     );
+//                   } else {
+//                     return StatefulBuilder(
+//                       builder: (context, setState) {
+//                         return GridView.builder(
+//                           physics: const ScrollPhysics(),
+//                           shrinkWrap: true,
+//                           itemCount: staff.length,
+//                           gridDelegate:
+//                               SliverGridDelegateWithFixedCrossAxisCount(
+//                             crossAxisCount: 2,
+//                             mainAxisSpacing: 10,
+//                             crossAxisSpacing: 10,
+//                             childAspectRatio: 2.5,
+//                           ),
+//                           itemBuilder: (context, index) {
+//                             var staffDetails = staff[index];
+//                             var name = staffDetails['name'];
+//                             String mobileNumber =
+//                                 staffDetails['mobile'].toString();
+//                             String formattedNumber =
+//                                 '(${mobileNumber.substring(0, 4)}) ${mobileNumber.substring(4, 7)}-${mobileNumber.substring(7)}';
 
-                            return GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  if (_selectedIndices.contains(index)) {
-                                    _selectedIndices.remove(index);
-                                  } else {
-                                    _selectedIndices.add(index);
-                                  }
-                                  selectedStaffDetails =
-                                      getSelectedStaffDetails();
-                                  printSelectedStaffDetails();
-                                });
-                              },
-                              child: Card(
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                    color: _selectedIndices.contains(index)
-                                        ? Colors.blue
-                                        : Colors.transparent,
-                                    width: 2.0,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Image(
-                                        image:
-                                            NetworkImage(staff[index]['icon']),
-                                        width: 25,
-                                        height: 25,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              name,
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                color: Colors.black,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                            SizedBox(height: 8),
-                                            Text(
-                                              formattedNumber,
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.black,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+//                             return GestureDetector(
+//                               onTap: () {
+//                                 setState(() {
+//                                   if (_selectedIndices.contains(index)) {
+//                                     _selectedIndices.remove(index);
+//                                   } else {
+//                                     _selectedIndices.add(index);
+//                                   }
+//                                   selectedStaffDetails =
+//                                       getSelectedStaffDetails();
+//                                   printSelectedStaffDetails();
+//                                 });
+//                               },
+//                               child: Card(
+//                                 shape: RoundedRectangleBorder(
+//                                   side: BorderSide(
+//                                     color: _selectedIndices.contains(index)
+//                                         ? Colors.blue
+//                                         : Colors.transparent,
+//                                     width: 2.0,
+//                                   ),
+//                                   borderRadius: BorderRadius.circular(4.0),
+//                                 ),
+//                                 child: Padding(
+//                                   padding: const EdgeInsets.all(8.0),
+//                                   child: Row(
+//                                     crossAxisAlignment:
+//                                         CrossAxisAlignment.start,
+//                                     children: [
+//                                       Image(
+//                                         image:
+//                                             NetworkImage(staff[index]['icon']),
+//                                         width: 25,
+//                                         height: 25,
+//                                       ),
+//                                       SizedBox(width: 8),
+//                                       Expanded(
+//                                         child: Column(
+//                                           crossAxisAlignment:
+//                                               CrossAxisAlignment.start,
+//                                           children: [
+//                                             Text(
+//                                               name,
+//                                               style: TextStyle(
+//                                                 fontSize: 18,
+//                                                 color: Colors.black,
+//                                                 overflow: TextOverflow.ellipsis,
+//                                               ),
+//                                             ),
+//                                             SizedBox(height: 8),
+//                                             Text(
+//                                               formattedNumber,
+//                                               style: TextStyle(
+//                                                 fontSize: 12,
+//                                                 color: Colors.black,
+//                                                 overflow: TextOverflow.ellipsis,
+//                                               ),
+//                                             ),
+//                                           ],
+//                                         ),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                 ),
+//                               ),
+//                             );
+//                           },
+//                         );
+//                       },
+//                     );
+//                   }
+//                 },
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
 
-  Map<String, dynamic>? getSelectedStaffDetails() {
-    if (_selectedIndices.isEmpty) {
-      return null;
-    }
+//   Map<String, dynamic>? getSelectedStaffDetails() {
+//     if (_selectedIndices.isEmpty) {
+//       return null;
+//     }
 
-    List<Map<String, dynamic>> selectedDetails = [];
-    for (int index in _selectedIndices) {
-      var staffDetails = staff[index];
-      var name = staffDetails['name'];
-      var image = staffDetails['icon'];
-      var staffID = staffDetails['staffID'];
-      selectedDetails.add({
-        'name': name,
-        'image': image,
-        'staffID': staffID,
-      });
-    }
+//     List<Map<String, dynamic>> selectedDetails = [];
+//     for (int index in _selectedIndices) {
+//       var staffDetails = staff[index];
+//       var name = staffDetails['name'];
+//       var image = staffDetails['icon'];
+//       var staffID = staffDetails['staffID'];
+//       selectedDetails.add({
+//         'name': name,
+//         'image': image,
+//         'staffID': staffID,
+//       });
+//     }
 
-    return {
-      'selectedStaff': selectedDetails,
-    };
-  }
+//     return {
+//       'selectedStaff': selectedDetails,
+//     };
+//   }
 
-  void printSelectedStaffDetails() {
-    if (_selectedIndices.isEmpty) {
-      print('No containers selected.');
-    } else {
-      print('Selected staff details:');
-      for (int index in _selectedIndices) {
-        var staffDetails = staff[index];
-        var name = staffDetails['name'];
-        var image = staffDetails['icon'];
-        var staffID = staffDetails['staffID'];
+//   void printSelectedStaffDetails() {
+//     if (_selectedIndices.isEmpty) {
+//       print('No containers selected.');
+//     } else {
+//       print('Selected staff details:');
+//       for (int index in _selectedIndices) {
+//         var staffDetails = staff[index];
+//         var name = staffDetails['name'];
+//         var image = staffDetails['icon'];
+//         var staffID = staffDetails['staffID'];
 
-        print('Name: $name staffID: $staffID Image: $image ');
-      }
-    }
-  }
+//         print('Name: $name staffID: $staffID Image: $image ');
+//       }
+//     }
+//   }
 
-  Widget addButton() {
-    return Container(
-      color: Colors.grey[200],
-      child: Padding(
-        padding: const EdgeInsets.only(
-          top: 8.0,
-          left: 8.0,
-          right: 8.0,
-          bottom: 25.0,
-        ),
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
-            if (_selectedIndices.isNotEmpty) {
-              List<Map<String, dynamic>> selectedDetails = [];
-              for (int index in _selectedIndices) {
-                var staffDetails = staff[index];
-                var staffID = staffDetails['staffID'];
-                var name = staffDetails['name'];
-                var image = staffDetails['icon'];
-                selectedDetails.add({
-                  'staffID': staffID,
-                  'name': name,
-                  'image': image,
-                });
-              }
+//   Widget addButton() {
+//     return Container(
+//       color: Colors.grey[200],
+//       child: Padding(
+//         padding: const EdgeInsets.only(
+//           top: 8.0,
+//           left: 8.0,
+//           right: 8.0,
+//           bottom: 25.0,
+//         ),
+//         child: ElevatedButton(
+//           onPressed: () {
+//             Navigator.pop(context);
+//             if (_selectedIndices.isNotEmpty) {
+//               List<Map<String, dynamic>> selectedDetails = [];
+//               for (int index in _selectedIndices) {
+//                 var staffDetails = staff[index];
+//                 var staffID = staffDetails['staffID'];
+//                 var name = staffDetails['name'];
+//                 var image = staffDetails['icon'];
+//                 selectedDetails.add({
+//                   'staffID': staffID,
+//                   'name': name,
+//                   'image': image,
+//                 });
+//               }
 
-              showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20))),
-                builder: (BuildContext context) {
-                  return SizedBox(
-                    height: 750,
-                    child: SpecificStaff(
-                      staffID: selectedstaffID,
-                      staffDetails:
-                          selectedDetails.isNotEmpty ? selectedDetails : null,
-                      otems: widget.otems,
-                      cartOrderId: widget.cartOrderId,
-                      skus: widget.skus,
-                      updateCart: widget.updateCart,
-                    ),
-                  );
-                },
-              );
-            }
-          },
-          child: Text('Add'),
-        ),
-      ),
-    );
-  }
-}
+//               showModalBottomSheet<void>(
+//                 context: context,
+//                 isScrollControlled: true,
+//                 shape: const RoundedRectangleBorder(
+//                     borderRadius:
+//                         BorderRadius.vertical(top: Radius.circular(20))),
+//                 builder: (BuildContext context) {
+//                   return SizedBox(
+//                     height: 750,
+//                     child: SpecificStaff(
+//                       staffID: selectedstaffID,
+//                       staffDetails:
+//                           selectedDetails.isNotEmpty ? selectedDetails : null,
+//                       otems: widget.otems,
+//                       cartOrderId: widget.cartOrderId,
+//                       skus: widget.skus,
+//                       updateCart: widget.updateCart,
+//                     ),
+//                   );
+//                 },
+//               );
+//             }
+//           },
+//           child: Text('Add'),
+//         ),
+//       ),
+//     );
+//   }
+// }
 //showModalBottom for 'Add' button to show specific staff added from StaffPart
 
-class SpecificStaff extends StatefulWidget {
-  const SpecificStaff(
-      {required this.staffID,
-      required this.staffDetails,
-      required this.otems,
-      required this.skus,
-      required this.cartOrderId,
-      required this.updateCart,
-      Key? key});
+// class SpecificStaff extends StatefulWidget {
+//   const SpecificStaff(
+//       {required this.staffID,
+//       required this.staffDetails,
+//       required this.otems,
+//       required this.skus,
+//       required this.cartOrderId,
+//       required this.updateCart,
+//       Key? key});
 
-  final String staffID;
-  final List<Map<String, dynamic>>? staffDetails;
-  final List<dynamic> otems;
-  final List<dynamic> skus;
-  final String cartOrderId;
-  final Function updateCart;
+//   final String staffID;
+//   final List<Map<String, dynamic>>? staffDetails;
+//   final List<dynamic> otems;
+//   final List<dynamic> skus;
+//   final String cartOrderId;
+//   final Function updateCart;
 
-  @override
-  State<SpecificStaff> createState() => _SpecificStaffState();
-}
+//   @override
+//   State<SpecificStaff> createState() => _SpecificStaffState();
+// }
 
-class _SpecificStaffState extends State<SpecificStaff> {
-  Map<String, Map<String, String>> otemOrderMap = {};
-  // List<Map<String, dynamic>> updatedStaffDetails = [];
-  String? selectedItemCount;
-  int? selectedStaffIndex;
-  Map<String, String> selectedSkus = {};
+// class _SpecificStaffState extends State<SpecificStaff> {
+//   Map<String, Map<String, String>> otemOrderMap = {};
+//   // List<Map<String, dynamic>> updatedStaffDetails = [];
+//   String? selectedItemCount;
+//   int? selectedStaffIndex;
+//   Map<String, String> selectedSkus = {};
 
-  bool isCustomTapped = false;
-  bool okTapped = false;
-  bool showRefresh = false;
+//   bool isCustomTapped = false;
+//   bool okTapped = false;
+//   bool showRefresh = false;
 
-  List<TextEditingController> effortControllers = [];
-  List<TextEditingController> handsOnControllers = [];
+//   List<TextEditingController> effortControllers = [];
+//   List<TextEditingController> handsOnControllers = [];
 
-  void handleSkusSelected(Map<String, String> skus) {
-    setState(() {
-      selectedSkus = skus;
-    });
-  }
+//   void handleSkusSelected(Map<String, String> skus) {
+//     setState(() {
+//       selectedSkus = skus;
+//     });
+//   }
 
-  @override
-  void initState() {
-    super.initState();
+//   @override
+//   void initState() {
+//     super.initState();
 
-    // Initialize the effort and hands-on controllers for each staff detail
-    for (int i = 0; i < widget.staffDetails!.length; i++) {
-      effortControllers.add(TextEditingController());
-      handsOnControllers.add(TextEditingController());
-    }
-  }
+//     // Initialize the effort and hands-on controllers for each staff detail
+//     for (int i = 0; i < widget.staffDetails!.length; i++) {
+//       effortControllers.add(TextEditingController());
+//       handsOnControllers.add(TextEditingController());
+//     }
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          centerTitle: true,
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-          title: const Text(
-            "Staff Added",
-            style: TextStyle(color: Colors.black),
-          ),
-          leading: xIcon(),
-        ),
-        body: SingleChildScrollView(
-          child: Stack(
-            children: [
-              Container(
-                color: Colors.grey[200],
-              ),
-              Column(
-                children: [hi()],
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: addButton());
-  }
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//         backgroundColor: Colors.transparent,
+//         appBar: AppBar(
+//           backgroundColor: Colors.white,
+//           centerTitle: true,
+//           shape: const RoundedRectangleBorder(
+//               borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+//           title: const Text(
+//             "Staff Added",
+//             style: TextStyle(color: Colors.black),
+//           ),
+//           leading: xIcon(),
+//         ),
+//         body: SingleChildScrollView(
+//           child: Stack(
+//             children: [
+//               Container(
+//                 color: Colors.grey[200],
+//               ),
+//               Column(
+//                 children: [hi()],
+//               ),
+//             ],
+//           ),
+//         ),
+//         bottomNavigationBar: addButton());
+//   }
 
-  Widget xIcon() {
-    return IconButton(
-      icon: Image.asset(
-        "lib/assets/Artboard 40.png",
-        height: 30,
-        width: 20,
-      ),
-      onPressed: () => Navigator.pop(context),
-      iconSize: 24,
-    );
-  }
+//   Widget xIcon() {
+//     return IconButton(
+//       icon: Image.asset(
+//         "lib/assets/Artboard 40.png",
+//         height: 30,
+//         width: 20,
+//       ),
+//       onPressed: () => Navigator.pop(context),
+//       iconSize: 24,
+//     );
+//   }
 
-  Widget hi() {
-    print("Dalam specific staff: ${widget.otems}");
-    return Column(
-      children: [
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount:
-              widget.staffDetails != null ? widget.staffDetails!.length : 0,
-          itemBuilder: (context, index) {
-            var staffDetail = widget.staffDetails![index];
+//   Widget hi() {
+//     print("Dalam specific staff: ${widget.otems}");
+//     return Column(
+//       children: [
+//         ListView.builder(
+//           shrinkWrap: true,
+//           physics: const NeverScrollableScrollPhysics(),
+//           itemCount:
+//               widget.staffDetails != null ? widget.staffDetails!.length : 0,
+//           itemBuilder: (context, index) {
+//             var staffDetail = widget.staffDetails![index];
 
-            TextEditingController effortTextController =
-                effortControllers[index];
-            TextEditingController handsOnTextController =
-                handsOnControllers[index];
+//             TextEditingController effortTextController =
+//                 effortControllers[index];
+//             TextEditingController handsOnTextController =
+//                 handsOnControllers[index];
 
-            effortControllers.add(effortTextController);
-            handsOnControllers.add(handsOnTextController);
+//             effortControllers.add(effortTextController);
+//             handsOnControllers.add(handsOnTextController);
 
-            // var effortText = effortControllers[index];
-            // var handsOnText = handsOnControllers[index];
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                height: 155,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text(
-                            'Staff',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Divider(),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Image.network(
-                            staffDetail['image'],
-                            width: 20,
-                            height: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            staffDetail['name'],
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          const Spacer(),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                widget.staffDetails!.removeAt(index);
-                                print('Latest: ${widget.staffDetails}');
-                              });
-                            },
-                            child: const Icon(
-                              Icons.delete,
-                              size: 15,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          SizedBox(width: 20),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedStaffIndex = index;
-                                });
-                              },
-                              child: Container(
-                                width: 106,
-                                height: 57,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(8)),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Row(
-                                        children: [
-                                          const Text(
-                                            'Effort ',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          Container(
-                                            width: 18,
-                                            height: 18,
-                                            decoration: const BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Colors.blue,
-                                            ),
-                                            child: const Icon(
-                                              Icons.edit,
-                                              color: Colors.white,
-                                              size: 15,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: 8, bottom: 3),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                // Handle tap on Effort text
-                                              },
-                                              child: TextFormField(
-                                                controller:
-                                                    effortTextController,
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.black,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                                keyboardType:
-                                                    TextInputType.text,
-                                                inputFormatters: [
-                                                  FilteringTextInputFormatter
-                                                      .digitsOnly,
-                                                ],
-                                                onChanged: (value) {
-                                                  // Handle changes in Effort value
-                                                },
-                                                decoration:
-                                                    const InputDecoration(
-                                                  isDense: true,
-                                                  contentPadding:
-                                                      EdgeInsets.zero,
-                                                  border: InputBorder.none,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedStaffIndex = index;
-                                });
-                              },
-                              child: Container(
-                                width: 106,
-                                height: 57,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(8)),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Row(
-                                        children: [
-                                          const Text(
-                                            'Hands on ',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          Container(
-                                            width: 18,
-                                            height: 18,
-                                            decoration: const BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Colors.blue,
-                                            ),
-                                            child: const Icon(
-                                              Icons.edit,
-                                              color: Colors.white,
-                                              size: 15,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: 8, bottom: 3),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                // Handle tap on Hands on text
-                                              },
-                                              child: TextFormField(
-                                                controller:
-                                                    handsOnTextController,
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.black,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                                keyboardType:
-                                                    TextInputType.text,
-                                                inputFormatters: [
-                                                  FilteringTextInputFormatter
-                                                      .digitsOnly,
-                                                ],
-                                                onChanged: (value) {
-                                                  // Handle changes in Hands on value
-                                                },
-                                                decoration:
-                                                    const InputDecoration(
-                                                  isDense: true,
-                                                  contentPadding:
-                                                      EdgeInsets.zero,
-                                                  border: InputBorder.none,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            height: 70,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(8)),
-            ),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      const Text(
-                        'Apply to ',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () {
-                          showModalBottomSheet<String>(
-                            context: context,
-                            isScrollControlled: true,
-                            shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(20))),
-                            builder: (BuildContext context) {
-                              return SizedBox(
-                                height: 750,
-                                child: TrialSelectItem(
-                                  otems: widget.otems,
-                                  onSkusSelected: handleSkusSelected,
-                                  skus: widget.skus,
-                                ),
-                              );
-                            },
-                          ).then((selectedCount) {
-                            if (selectedCount != null) {
-                              setState(() {
-                                selectedItemCount = selectedCount;
-                              });
-                            }
-                          });
-                        },
-                        child: Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.blue,
-                          ),
-                          child: Icon(
-                            Icons.edit,
-                            color: Colors.white,
-                            size: 15,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        '${selectedItemCount ?? 0} item',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.blue,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+//             // var effortText = effortControllers[index];
+//             // var handsOnText = handsOnControllers[index];
+//             return Padding(
+//               padding: const EdgeInsets.all(8.0),
+//               child: Container(
+//                 height: 155,
+//                 width: double.infinity,
+//                 decoration: const BoxDecoration(
+//                   color: Colors.white,
+//                   borderRadius: BorderRadius.all(Radius.circular(8)),
+//                 ),
+//                 child: Column(
+//                   children: [
+//                     Row(
+//                       children: [
+//                         Padding(
+//                           padding: EdgeInsets.all(8.0),
+//                           child: Text(
+//                             'Staff',
+//                             style: TextStyle(
+//                               fontSize: 12,
+//                               color: Colors.grey,
+//                               overflow: TextOverflow.ellipsis,
+//                             ),
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                     const Divider(),
+//                     Padding(
+//                       padding: const EdgeInsets.all(8.0),
+//                       child: Row(
+//                         children: [
+//                           Image.network(
+//                             staffDetail['image'],
+//                             width: 20,
+//                             height: 20,
+//                           ),
+//                           const SizedBox(width: 8),
+//                           Text(
+//                             staffDetail['name'],
+//                             style: TextStyle(fontSize: 12),
+//                           ),
+//                           const Spacer(),
+//                           GestureDetector(
+//                             onTap: () {
+//                               setState(() {
+//                                 widget.staffDetails!.removeAt(index);
+//                                 print('Latest: ${widget.staffDetails}');
+//                               });
+//                             },
+//                             child: const Icon(
+//                               Icons.delete,
+//                               size: 15,
+//                               color: Colors.red,
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                     Padding(
+//                       padding: const EdgeInsets.all(8.0),
+//                       child: Row(
+//                         children: [
+//                           SizedBox(width: 20),
+//                           Expanded(
+//                             child: GestureDetector(
+//                               onTap: () {
+//                                 setState(() {
+//                                   selectedStaffIndex = index;
+//                                 });
+//                               },
+//                               child: Container(
+//                                 width: 106,
+//                                 height: 57,
+//                                 decoration: BoxDecoration(
+//                                   color: Colors.grey[200],
+//                                   borderRadius: const BorderRadius.all(
+//                                       Radius.circular(8)),
+//                                 ),
+//                                 child: Column(
+//                                   children: [
+//                                     Padding(
+//                                       padding: const EdgeInsets.all(8.0),
+//                                       child: Row(
+//                                         children: [
+//                                           const Text(
+//                                             'Effort ',
+//                                             style: TextStyle(
+//                                               fontSize: 12,
+//                                               color: Colors.grey,
+//                                               overflow: TextOverflow.ellipsis,
+//                                             ),
+//                                           ),
+//                                           Container(
+//                                             width: 18,
+//                                             height: 18,
+//                                             decoration: const BoxDecoration(
+//                                               shape: BoxShape.circle,
+//                                               color: Colors.blue,
+//                                             ),
+//                                             child: const Icon(
+//                                               Icons.edit,
+//                                               color: Colors.white,
+//                                               size: 15,
+//                                             ),
+//                                           ),
+//                                         ],
+//                                       ),
+//                                     ),
+//                                     Padding(
+//                                       padding: const EdgeInsets.only(
+//                                           left: 8, bottom: 3),
+//                                       child: Row(
+//                                         children: [
+//                                           Expanded(
+//                                             child: GestureDetector(
+//                                               onTap: () {
+//                                                 // Handle tap on Effort text
+//                                               },
+//                                               child: TextFormField(
+//                                                 controller:
+//                                                     effortTextController,
+//                                                 style: const TextStyle(
+//                                                   fontSize: 14,
+//                                                   color: Colors.black,
+//                                                   overflow:
+//                                                       TextOverflow.ellipsis,
+//                                                 ),
+//                                                 keyboardType:
+//                                                     TextInputType.text,
+//                                                 inputFormatters: [
+//                                                   FilteringTextInputFormatter
+//                                                       .digitsOnly,
+//                                                 ],
+//                                                 onChanged: (value) {
+//                                                   // Handle changes in Effort value
+//                                                 },
+//                                                 decoration:
+//                                                     const InputDecoration(
+//                                                   isDense: true,
+//                                                   contentPadding:
+//                                                       EdgeInsets.zero,
+//                                                   border: InputBorder.none,
+//                                                 ),
+//                                               ),
+//                                             ),
+//                                           ),
+//                                         ],
+//                                       ),
+//                                     ),
+//                                   ],
+//                                 ),
+//                               ),
+//                             ),
+//                           ),
+//                           const SizedBox(width: 10),
+//                           Expanded(
+//                             child: GestureDetector(
+//                               onTap: () {
+//                                 setState(() {
+//                                   selectedStaffIndex = index;
+//                                 });
+//                               },
+//                               child: Container(
+//                                 width: 106,
+//                                 height: 57,
+//                                 decoration: BoxDecoration(
+//                                   color: Colors.grey[200],
+//                                   borderRadius: const BorderRadius.all(
+//                                       Radius.circular(8)),
+//                                 ),
+//                                 child: Column(
+//                                   children: [
+//                                     Padding(
+//                                       padding: const EdgeInsets.all(8.0),
+//                                       child: Row(
+//                                         children: [
+//                                           const Text(
+//                                             'Hands on ',
+//                                             style: TextStyle(
+//                                               fontSize: 12,
+//                                               color: Colors.grey,
+//                                               overflow: TextOverflow.ellipsis,
+//                                             ),
+//                                           ),
+//                                           Container(
+//                                             width: 18,
+//                                             height: 18,
+//                                             decoration: const BoxDecoration(
+//                                               shape: BoxShape.circle,
+//                                               color: Colors.blue,
+//                                             ),
+//                                             child: const Icon(
+//                                               Icons.edit,
+//                                               color: Colors.white,
+//                                               size: 15,
+//                                             ),
+//                                           ),
+//                                         ],
+//                                       ),
+//                                     ),
+//                                     Padding(
+//                                       padding: const EdgeInsets.only(
+//                                           left: 8, bottom: 3),
+//                                       child: Row(
+//                                         children: [
+//                                           Expanded(
+//                                             child: GestureDetector(
+//                                               onTap: () {
+//                                                 // Handle tap on Hands on text
+//                                               },
+//                                               child: TextFormField(
+//                                                 controller:
+//                                                     handsOnTextController,
+//                                                 style: const TextStyle(
+//                                                   fontSize: 14,
+//                                                   color: Colors.black,
+//                                                   overflow:
+//                                                       TextOverflow.ellipsis,
+//                                                 ),
+//                                                 keyboardType:
+//                                                     TextInputType.text,
+//                                                 inputFormatters: [
+//                                                   FilteringTextInputFormatter
+//                                                       .digitsOnly,
+//                                                 ],
+//                                                 onChanged: (value) {
+//                                                   // Handle changes in Hands on value
+//                                                 },
+//                                                 decoration:
+//                                                     const InputDecoration(
+//                                                   isDense: true,
+//                                                   contentPadding:
+//                                                       EdgeInsets.zero,
+//                                                   border: InputBorder.none,
+//                                                 ),
+//                                               ),
+//                                             ),
+//                                           ),
+//                                         ],
+//                                       ),
+//                                     ),
+//                                   ],
+//                                 ),
+//                               ),
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             );
+//           },
+//         ),
+//         Padding(
+//           padding: const EdgeInsets.all(8.0),
+//           child: Container(
+//             height: 70,
+//             width: double.infinity,
+//             decoration: const BoxDecoration(
+//               color: Colors.white,
+//               borderRadius: BorderRadius.all(Radius.circular(8)),
+//             ),
+//             child: Column(
+//               children: [
+//                 Padding(
+//                   padding: const EdgeInsets.all(8.0),
+//                   child: Row(
+//                     children: [
+//                       const Text(
+//                         'Apply to ',
+//                         style: TextStyle(
+//                           fontSize: 12,
+//                           color: Colors.grey,
+//                           overflow: TextOverflow.ellipsis,
+//                         ),
+//                       ),
+//                       const Spacer(),
+//                       GestureDetector(
+//                         onTap: () {
+//                           showModalBottomSheet<String>(
+//                             context: context,
+//                             isScrollControlled: true,
+//                             shape: const RoundedRectangleBorder(
+//                                 borderRadius: BorderRadius.vertical(
+//                                     top: Radius.circular(20))),
+//                             builder: (BuildContext context) {
+//                               return SizedBox(
+//                                 height: 750,
+//                                 child: CartStaffSelectItem(
+//                                   otems: widget.otems,
+//                                   onSkusSelected: handleSkusSelected,
+//                                   skus: widget.skus,
+//                                 ),
+//                               );
+//                             },
+//                           ).then((selectedCount) {
+//                             if (selectedCount != null) {
+//                               setState(() {
+//                                 selectedItemCount = selectedCount;
+//                               });
+//                             }
+//                           });
+//                         },
+//                         child: Container(
+//                           width: 20,
+//                           height: 20,
+//                           decoration: BoxDecoration(
+//                             shape: BoxShape.circle,
+//                             color: Colors.blue,
+//                           ),
+//                           child: Icon(
+//                             Icons.edit,
+//                             color: Colors.white,
+//                             size: 15,
+//                           ),
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//                 Row(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: [
+//                     Padding(
+//                       padding: const EdgeInsets.all(8.0),
+//                       child: Text(
+//                         '${selectedItemCount ?? 0} item',
+//                         style: const TextStyle(
+//                           fontSize: 14,
+//                           color: Colors.blue,
+//                           overflow: TextOverflow.ellipsis,
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ],
+//     );
+//   }
 
-  void matchingValue() {
-    // Create a new map to store otemID and orderID
-    for (Map<String, dynamic> otem in widget.otems) {
-      String skuID = otem['skuID'].toString();
-      if (selectedSkus.containsValue(skuID)) {
-        String otemID = otem['otemID'].toString();
-        String orderID = otem['orderID'].toString();
+//   void matchingValue() {
+//     // Create a new map to store otemID and orderID
+//     for (Map<String, dynamic> otem in widget.otems) {
+//       String skuID = otem['skuID'].toString();
+//       if (selectedSkus.containsValue(skuID)) {
+//         String otemID = otem['otemID'].toString();
+//         String orderID = otem['orderID'].toString();
 
-        // Create a new map to store orderID and otemID
-        Map<String, String> orderMap = {
-          'orderID': orderID,
-          'otemID': otemID,
-        };
+//         // Create a new map to store orderID and otemID
+//         Map<String, String> orderMap = {
+//           'orderID': orderID,
+//           'otemID': otemID,
+//         };
 
-        // Store the orderMap in the otemOrderMap using otemID as the key
-        otemOrderMap[otemID] = orderMap;
-      }
-    }
+//         // Store the orderMap in the otemOrderMap using otemID as the key
+//         otemOrderMap[otemID] = orderMap;
+//       }
+//     }
 
-    // Perform actions with the otemOrderMap
-    print('Otem Order Map: $otemOrderMap');
-    print('Selected SKUs: $selectedSkus');
-  }
+//     // Perform actions with the otemOrderMap
+//     print('Otem Order Map: $otemOrderMap');
+//     print('Selected SKUs: $selectedSkus');
+//   }
 
-  Widget addButton() {
-    return Container(
-      color: Colors.grey[200],
-      child: Padding(
-        padding: const EdgeInsets.only(
-          top: 8.0,
-          left: 8.0,
-          right: 8.0,
-          bottom: 25.0,
-        ),
-        child: ElevatedButton(
-          onPressed: () async {
-            List<Map<String, dynamic>> updatedStaffDetails = [];
-            for (int i = 0; i < widget.staffDetails!.length; i++) {
-              var staffDetail = widget.staffDetails![i];
-              var effortText = effortControllers[i];
-              var handsOnText = handsOnControllers[i];
-              var updatedStaffDetail = {
-                'staffID': staffDetail['staffID'],
-                'name': staffDetail['name'],
-                'image': staffDetail['image'],
-                'effort': effortText.text,
-                'handson': handsOnText.text,
-              };
-              updatedStaffDetails.add(updatedStaffDetail);
-              // print("testtttttt");
-              // print(updatedStaffDetails);
-            }
+//   Widget addButton() {
+//     return Container(
+//       color: Colors.grey[200],
+//       child: Padding(
+//         padding: const EdgeInsets.only(
+//           top: 8.0,
+//           left: 8.0,
+//           right: 8.0,
+//           bottom: 25.0,
+//         ),
+//         child: ElevatedButton(
+//           onPressed: () async {
+//             List<Map<String, dynamic>> updatedStaffDetails = [];
+//             for (int i = 0; i < widget.staffDetails!.length; i++) {
+//               var staffDetail = widget.staffDetails![i];
+//               var effortText = effortControllers[i];
+//               var handsOnText = handsOnControllers[i];
+//               var updatedStaffDetail = {
+//                 'staffID': staffDetail['staffID'],
+//                 'name': staffDetail['name'],
+//                 'image': staffDetail['image'],
+//                 'effort': effortText.text,
+//                 'handson': handsOnText.text,
+//               };
+//               updatedStaffDetails.add(updatedStaffDetail);
+//               // print("testtttttt");
+//               // print(updatedStaffDetails);
+//             }
 
-            matchingValue();
-            // print("selectedkusstaff: $selectedSkus");
-            //  print("updatedStaffDetailsstaff: $updatedStaffDetails");
-            await trialotemsStaff(selectedSkus, updatedStaffDetails);
+//             matchingValue();
+//             // print("selectedkusstaff: $selectedSkus");
+//             //  print("updatedStaffDetailsstaff: $updatedStaffDetails");
+//             await trialotemsStaff(selectedSkus, updatedStaffDetails);
 
-            Navigator.pop(context);
+//             Navigator.pop(context);
 
-            // setState(() {});
-          },
-          child: const Text('Apply'),
-        ),
-      ),
-    );
-  }
+//             // setState(() {});
+//           },
+//           child: const Text('Apply'),
+//         ),
+//       ),
+//     );
+//   }
 
-  // void updateDetails() {
-  //   // Create a new list to store the updated staff details
-  //   // updatedStaffDetails = [];
+//   // void updateDetails() {
+//   //   // Create a new list to store the updated staff details
+//   //   // updatedStaffDetails = [];
 
-  //   // Iterate over the existing staff details and update the effort and hands-on values
-  //   for (int i = 0; i < widget.staffDetails!.length; i++) {
-  //     var staffDetail = widget.staffDetails![i];
-  //     var effortText = effortControllers[i];
-  //     var handsOnText = handsOnControllers[i];
-  //     var updatedStaffDetail = {
-  //       'staffID': staffDetail['staffID'],
-  //       'name': staffDetail['name'],
-  //       'image': staffDetail['image'],
-  //       'effort': effortText.text,
-  //       'handson': handsOnText.text,
-  //     };
-  //     updatedStaffDetails.add(updatedStaffDetail);
-  //     print("testtttttt");
-  //     print(updatedStaffDetails);
-  //   }
-  // }
+//   //   // Iterate over the existing staff details and update the effort and hands-on values
+//   //   for (int i = 0; i < widget.staffDetails!.length; i++) {
+//   //     var staffDetail = widget.staffDetails![i];
+//   //     var effortText = effortControllers[i];
+//   //     var handsOnText = handsOnControllers[i];
+//   //     var updatedStaffDetail = {
+//   //       'staffID': staffDetail['staffID'],
+//   //       'name': staffDetail['name'],
+//   //       'image': staffDetail['image'],
+//   //       'effort': effortText.text,
+//   //       'handson': handsOnText.text,
+//   //     };
+//   //     updatedStaffDetails.add(updatedStaffDetail);
+//   //     print("testtttttt");
+//   //     print(updatedStaffDetails);
+//   //   }
+//   // }
 
-  Future<void> otemsStaff(Map<String, Map<String, String>> otemOrderMap,
-      List<Map<String, dynamic>> updatedStaffDetails) async {
-    var orderID = otemOrderMap.values.map((map) => map['orderID']).toList();
-    var otemIDs = otemOrderMap.values.map((map) => map['otemID']).toList();
+//   Future<void> otemsStaff(Map<String, Map<String, String>> otemOrderMap,
+//       List<Map<String, dynamic>> updatedStaffDetails) async {
+//     var orderID = otemOrderMap.values.map((map) => map['orderID']).toList();
+//     var otemIDs = otemOrderMap.values.map((map) => map['otemID']).toList();
 
-    print("Dalam otemStaff: $otemOrderMap $orderID $otemIDs");
-    print("Dalam otemStaff: $updatedStaffDetails");
-    print("Dalam otemStaff: ${widget.cartOrderId}");
+//     print("Dalam otemStaff: $otemOrderMap $orderID $otemIDs");
+//     print("Dalam otemStaff: $updatedStaffDetails");
+//     print("Dalam otemStaff: ${widget.cartOrderId}");
 
-    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+//     var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
 
-    for (var i = 0; i < otemIDs.length; i++) {
-      // Check if the widget is still mounted before proceeding
-      // if (!mounted) {
-      //   return;
-      // }
-      var request = http.Request(
-        'POST',
-        Uri.parse(
-            'https://order.tunai.io/loyalty/order/${orderID[i]}/otems/${otemIDs[i]}/servant/set'),
-      );
+//     for (var i = 0; i < otemIDs.length; i++) {
+//       // Check if the widget is still mounted before proceeding
+//       // if (!mounted) {
+//       //   return;
+//       // }
+//       var request = http.Request(
+//         'POST',
+//         Uri.parse(
+//             'https://order.tunai.io/loyalty/order/${orderID[i]}/otems/${otemIDs[i]}/servant/set'),
+//       );
 
-      request.body = json.encode({
-        "staffs": updatedStaffDetails.map((staff) {
-          return {
-            "staffID": staff['staffID'],
-            "efforts": staff['efforts'],
-            "handson": staff['handson'],
-          };
-        }).toList(),
-      });
-      request.headers.addAll(headers);
+//       request.body = json.encode({
+//         "staffs": updatedStaffDetails.map((staff) {
+//           return {
+//             "staffID": staff['staffID'],
+//             "efforts": staff['efforts'],
+//             "handson": staff['handson'],
+//           };
+//         }).toList(),
+//       });
+//       request.headers.addAll(headers);
 
-      http.StreamedResponse response = await request.send();
+//       http.StreamedResponse response = await request.send();
 
-      if (response.statusCode == 200) {
-        print(otemIDs);
-        print(await response.stream.bytesToString());
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      } else {
-        print(response.reasonPhrase);
-        print("GoodLuck");
-      }
-    }
-  }
+//       if (response.statusCode == 200) {
+//         print(otemIDs);
+//         print(await response.stream.bytesToString());
+//         if (mounted) {
+//           Navigator.pop(context);
+//         }
+//       } else {
+//         print(response.reasonPhrase);
+//         print("GoodLuck");
+//       }
+//     }
+//   }
 
-  Future<void> trialotemsStaff(Map<String, String> selectedSkus,
-      List<Map<String, dynamic>> updatedStaffDetails) async {
-    List<String> itemIDs = selectedSkus.values.map((value) {
-      return value.split(':').last;
-    }).toList();
+//   Future<void> trialotemsStaff(Map<String, String> selectedSkus,
+//       List<Map<String, dynamic>> updatedStaffDetails) async {
+//     List<String> itemIDs = selectedSkus.values.map((value) {
+//       return value.split(':').last;
+//     }).toList();
 
-    print("itemIDs: $itemIDs");
+//     print("itemIDs: $itemIDs");
 
-    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+//     var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
 
-    for (var i = 0; i < itemIDs.length; i++) {
-      var request = http.Request(
-        'POST',
-        Uri.parse(
-            'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/${itemIDs[i]}/servant/set'),
-      );
+//     for (var i = 0; i < itemIDs.length; i++) {
+//       var request = http.Request(
+//         'POST',
+//         Uri.parse(
+//             'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/${itemIDs[i]}/servant/set'),
+//       );
 
-      request.body = json.encode({
-        "staffs": updatedStaffDetails.map((staff) {
-          return {
-            "staffID": staff['staffID'],
-            "efforts": staff['effort'],
-            "handson": staff['handson'],
-          };
-        }).toList(),
-      });
-      request.headers.addAll(headers);
+//       request.body = json.encode({
+//         "staffs": updatedStaffDetails.map((staff) {
+//           return {
+//             "staffID": staff['staffID'],
+//             "efforts": staff['effort'],
+//             "handson": staff['handson'],
+//           };
+//         }).toList(),
+//       });
+//       request.headers.addAll(headers);
 
-      http.StreamedResponse response = await request.send();
+//       http.StreamedResponse response = await request.send();
 
-      if (response.statusCode == 200) {
-        print(await response.stream.bytesToString());
+//       if (response.statusCode == 200) {
+//         print(await response.stream.bytesToString());
 
-        widget.updateCart();
-      } else {
-        print(response.reasonPhrase);
-        print("GoodLuck");
-      }
-    }
-  }
-}
+//         widget.updateCart();
+//       } else {
+//         print(response.reasonPhrase);
+//         print("GoodLuck");
+//       }
+//     }
+//   }
+// }
 
 //showModalBottom for discount button in cart
 
@@ -2941,251 +2941,251 @@ class _SelectItemForDiscountState extends State<SelectItemForDiscount> {
 }
 
 //showModalBottom for 'Apply to' icon to show item selected for the staff from SpecificStaff class
-class SelectItem extends StatefulWidget {
-  const SelectItem({
-    Key? key,
-    required this.otems,
-    required this.skus,
-    required this.onSkusSelected,
-  });
-  final List<dynamic> otems;
-  final List<dynamic> skus;
-  final Function(Map<String, String>) onSkusSelected;
+// class SelectItem extends StatefulWidget {
+//   const SelectItem({
+//     Key? key,
+//     required this.otems,
+//     required this.skus,
+//     required this.onSkusSelected,
+//   });
+//   final List<dynamic> otems;
+//   final List<dynamic> skus;
+//   final Function(Map<String, String>) onSkusSelected;
 
-  @override
-  State<SelectItem> createState() => _SelectItemState();
-}
+//   @override
+//   State<SelectItem> createState() => _SelectItemState();
+// }
 
-class _SelectItemState extends State<SelectItem> {
-  Map<String, String> selectedSkus = {};
+// class _SelectItemState extends State<SelectItem> {
+//   Map<String, String> selectedSkus = {};
 
-  bool okTapped = false;
-  bool showRefresh = false;
+//   bool okTapped = false;
+//   bool showRefresh = false;
 
-  int? selectedStaffIndex;
-  Set<int> selectedItems = {};
-  int selectedItemCount = 0;
-  bool isAllItemsSelected = false;
+//   int? selectedStaffIndex;
+//   Set<int> selectedItems = {};
+//   int selectedItemCount = 0;
+//   bool isAllItemsSelected = false;
 
-  void updateSelectedItems(Set<int> updatedSelectedItems) {
-    setState(() {
-      selectedItems = updatedSelectedItems;
-      selectedItemCount = selectedItems.length;
+//   void updateSelectedItems(Set<int> updatedSelectedItems) {
+//     setState(() {
+//       selectedItems = updatedSelectedItems;
+//       selectedItemCount = selectedItems.length;
 
-      // Update selectedSkus map
-      selectedSkus.clear();
-      for (int index in selectedItems) {
-        final sku = skus[index];
-        selectedSkus['skuID'] = sku['skuID'];
-      }
-    });
-  }
+//       // Update selectedSkus map
+//       selectedSkus.clear();
+//       for (int index in selectedItems) {
+//         final sku = skus[index];
+//         selectedSkus['skuID'] = sku['skuID'];
+//       }
+//     });
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        title: Text(
-          "Select Items ${selectedItems.length}",
-          style: TextStyle(color: Colors.black),
-        ),
-        leading: xIcon(),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextButton(
-              onPressed: selectAllItems,
-              child: Text(
-                'Select All',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.blue,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Stack(
-          children: [
-            Container(
-              color: Colors.grey[200],
-            ),
-            Column(
-              children: [hi()],
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: addButton(),
-    );
-  }
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.transparent,
+//       appBar: AppBar(
+//         backgroundColor: Colors.white,
+//         centerTitle: true,
+//         shape: const RoundedRectangleBorder(
+//           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+//         ),
+//         title: Text(
+//           "Select Items ${selectedItems.length}",
+//           style: TextStyle(color: Colors.black),
+//         ),
+//         leading: xIcon(),
+//         actions: [
+//           Padding(
+//             padding: const EdgeInsets.symmetric(horizontal: 16),
+//             child: TextButton(
+//               onPressed: selectAllItems,
+//               child: Text(
+//                 'Select All',
+//                 style: TextStyle(
+//                   fontSize: 14,
+//                   color: Colors.blue,
+//                   overflow: TextOverflow.ellipsis,
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//       body: SingleChildScrollView(
+//         child: Stack(
+//           children: [
+//             Container(
+//               color: Colors.grey[200],
+//             ),
+//             Column(
+//               children: [hi()],
+//             ),
+//           ],
+//         ),
+//       ),
+//       bottomNavigationBar: addButton(),
+//     );
+//   }
 
-  Widget xIcon() {
-    return IconButton(
-      icon: Image.asset(
-        "lib/assets/Artboard 40.png",
-        height: 30,
-        width: 20,
-      ),
-      onPressed: () => Navigator.pop(context),
-      iconSize: 24,
-    );
-  }
+//   Widget xIcon() {
+//     return IconButton(
+//       icon: Image.asset(
+//         "lib/assets/Artboard 40.png",
+//         height: 30,
+//         width: 20,
+//       ),
+//       onPressed: () => Navigator.pop(context),
+//       iconSize: 24,
+//     );
+//   }
 
-  void selectAllItems() {
-    setState(() {
-      if (isAllItemsSelected) {
-        selectedItems = {};
-        selectedSkus = {};
-      } else {
-        selectedItems =
-            Set<int>.from(List.generate(skus.length, (index) => index));
-        selectedSkus = Map.fromIterables(
-          selectedItems.map((index) => index.toString()),
-          skus.map((sku) => sku['skuID'].toString()),
-        );
-      }
-      isAllItemsSelected = !isAllItemsSelected;
-    });
-  }
+//   void selectAllItems() {
+//     setState(() {
+//       if (isAllItemsSelected) {
+//         selectedItems = {};
+//         selectedSkus = {};
+//       } else {
+//         selectedItems =
+//             Set<int>.from(List.generate(skus.length, (index) => index));
+//         selectedSkus = Map.fromIterables(
+//           selectedItems.map((index) => index.toString()),
+//           skus.map((sku) => sku['skuID'].toString()),
+//         );
+//       }
+//       isAllItemsSelected = !isAllItemsSelected;
+//     });
+//   }
 
-  Widget hi() {
-    print("dalam select item: ${widget.skus}");
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1.9,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-            ),
-            itemCount: widget.skus.length,
-            itemBuilder: (context, index) {
-              final sku = widget.skus[index];
-              final isSelected =
-                  isAllItemsSelected || selectedItems.contains(index);
+//   Widget hi() {
+//     print("dalam select item: ${widget.skus}");
+//     return Column(
+//       children: [
+//         Padding(
+//           padding: const EdgeInsets.all(8.0),
+//           child: GridView.builder(
+//             shrinkWrap: true,
+//             physics: const NeverScrollableScrollPhysics(),
+//             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+//               crossAxisCount: 2,
+//               childAspectRatio: 1.9,
+//               crossAxisSpacing: 10,
+//               mainAxisSpacing: 10,
+//             ),
+//             itemCount: widget.skus.length,
+//             itemBuilder: (context, index) {
+//               final sku = widget.skus[index];
+//               final isSelected =
+//                   isAllItemsSelected || selectedItems.contains(index);
 
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (selectedItems.contains(index)) {
-                      selectedItems.remove(index);
-                      selectedSkus.remove(index.toString());
-                    } else {
-                      selectedItems.add(index);
-                      final sku = widget.skus[index];
-                      selectedSkus[index.toString()] = sku['skuID'].toString();
-                    }
-                    print(selectedSkus);
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.all(10),
-                  child: Stack(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      sku['name'],
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      '${sku['selling'].toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (isSelected)
-                        Positioned(
-                          bottom: 10,
-                          right: 10,
-                          child: Container(
-                            width: 20,
-                            height: 20,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.blue,
-                            ),
-                            child: Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
+//               return GestureDetector(
+//                 onTap: () {
+//                   setState(() {
+//                     if (selectedItems.contains(index)) {
+//                       selectedItems.remove(index);
+//                       selectedSkus.remove(index.toString());
+//                     } else {
+//                       selectedItems.add(index);
+//                       final sku = widget.skus[index];
+//                       selectedSkus[index.toString()] = sku['skuID'].toString();
+//                     }
+//                     print(selectedSkus);
+//                   });
+//                 },
+//                 child: Container(
+//                   decoration: BoxDecoration(
+//                     color: Colors.white,
+//                     borderRadius: BorderRadius.circular(10),
+//                   ),
+//                   padding: const EdgeInsets.all(10),
+//                   child: Stack(
+//                     children: [
+//                       Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           Padding(
+//                             padding: const EdgeInsets.all(8.0),
+//                             child: Column(
+//                               children: [
+//                                 Row(
+//                                   children: [
+//                                     Text(
+//                                       sku['name'],
+//                                       style: const TextStyle(
+//                                         fontSize: 16,
+//                                         color: Colors.black,
+//                                       ),
+//                                     ),
+//                                   ],
+//                                 ),
+//                                 Row(
+//                                   mainAxisAlignment:
+//                                       MainAxisAlignment.spaceBetween,
+//                                   children: [
+//                                     Text(
+//                                       '${sku['selling'].toStringAsFixed(2)}',
+//                                       style: const TextStyle(
+//                                         fontSize: 16,
+//                                         color: Colors.blue,
+//                                       ),
+//                                     ),
+//                                   ],
+//                                 ),
+//                               ],
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                       if (isSelected)
+//                         Positioned(
+//                           bottom: 10,
+//                           right: 10,
+//                           child: Container(
+//                             width: 20,
+//                             height: 20,
+//                             decoration: BoxDecoration(
+//                               shape: BoxShape.circle,
+//                               color: Colors.blue,
+//                             ),
+//                             child: Icon(
+//                               Icons.check,
+//                               color: Colors.white,
+//                               size: 20,
+//                             ),
+//                           ),
+//                         ),
+//                     ],
+//                   ),
+//                 ),
+//               );
+//             },
+//           ),
+//         ),
+//       ],
+//     );
+//   }
 
-  Widget addButton() {
-    return Container(
-      color: Colors.grey[200],
-      child: Padding(
-        padding: const EdgeInsets.only(
-          top: 8.0,
-          left: 8.0,
-          right: 8.0,
-          bottom: 25.0,
-        ),
-        child: ElevatedButton(
-          onPressed: () {
-            setState(() {});
-            widget.onSkusSelected(selectedSkus);
-            Navigator.pop(context, selectedItems.length);
-            print('Pass total selected container: $selectedItems');
-          },
-          child: Text('Ok'),
-        ),
-      ),
-    );
-  }
-}
+//   Widget addButton() {
+//     return Container(
+//       color: Colors.grey[200],
+//       child: Padding(
+//         padding: const EdgeInsets.only(
+//           top: 8.0,
+//           left: 8.0,
+//           right: 8.0,
+//           bottom: 25.0,
+//         ),
+//         child: ElevatedButton(
+//           onPressed: () {
+//             setState(() {});
+//             widget.onSkusSelected(selectedSkus);
+//             Navigator.pop(context, selectedItems.length);
+//             print('Pass total selected container: $selectedItems');
+//           },
+//           child: Text('Ok'),
+//         ),
+//       ),
+//     );
+//   }
+// }

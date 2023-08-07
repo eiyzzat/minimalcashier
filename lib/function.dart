@@ -1,8 +1,8 @@
 import 'package:http/http.dart' as http;
-import 'package:minimal/test/login.dart';
+import 'package:minimal/login.dart';
 import 'dart:convert';
 
-import 'api.dart';
+import 'exercises/api.dart';
 
 List<dynamic> staff = [];
 

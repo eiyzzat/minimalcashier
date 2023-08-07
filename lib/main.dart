@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:minimal/test/firstPage.dart';
-import 'package:minimal/test/login.dart';
-import 'package:minimal/textFormating.dart';
-import 'orderPage.dart';
-import 'textFormating.dart';
+import 'package:minimal/login.dart';
+
 
 
 void main() {

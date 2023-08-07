@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:minimal/test/login.dart';
+import 'package:minimal/login.dart';
 import 'dart:convert';
 
 //untuk store skuID,selling,quantity
@@ -14,8 +14,6 @@ class AllServices extends StatefulWidget {
     Key? key,
   }) : super(key: key);
 
-  static int totalQuantity = 0;
-
   @override
   State<AllServices> createState() => _AllServicesState();
 }
@@ -26,14 +24,15 @@ int getServiceTotalQuantity() {
     int quantity = sku['quantity'] ?? 0;
     totalQuantity += quantity;
   }
-  return totalQuantity;
+   totalQuantityNotifier.value = totalQuantity;
+  return totalQuantityNotifier.value;
 }
 
 double getServiceTotalPrice() {
   double totalPrice = 0;
   for (var sku in selectedService.values) {
     double price = sku['selling']?.toDouble() ?? 0.0;
-    totalPrice = price;
+    totalPrice += price;
   }
   totalSellingPriceNotifier.value = totalPrice;
   return totalSellingPriceNotifier.value;
@@ -238,9 +237,9 @@ class _AllServicesState extends State<AllServices> {
       if (selectedService.containsKey(skuID)) {
         quantity++;
         selectedService[skuID]!['quantity'] = quantity;
-        print("quantity:$quantity");
-        // selectedService[skuID]!['selling'] =
-        //     (selectedService[skuID]!['quantity']! * sellingPrice).toInt();
+        // print("quantity:$quantity");
+        selectedService[skuID]!['selling'] =
+            (selectedService[skuID]!['quantity']! * sellingPrice).toInt();
       } else {
         var sku = services.firstWhere((sku) => sku['skuID'] == skuID);
 
@@ -251,8 +250,8 @@ class _AllServicesState extends State<AllServices> {
           'skuID': skuID,
         };
       }
-      int totalQuantity = calculateTotalQuantity(
-          selectedService); // Calculate the total quantity
+      int totalQuantity = getServiceTotalQuantity();
+      
       getServiceTotalPrice();
     });
   }
@@ -267,29 +266,6 @@ class _AllServicesState extends State<AllServices> {
     }
     totalQuantityNotifier.value = totalQuantity;
     return totalQuantityNotifier.value;
-  }
-
-  void decrement(int skuID) {
-    int quantity = (selectedService[skuID]?['quantity'] ?? 0);
-    setState(() {
-      if (selectedService.containsKey(skuID)) {
-        quantity--;
-
-        if (selectedService[skuID]!['quantity']! <= 0) {
-          // Remove the service if the quantity becomes zero or negative
-          selectedService.remove(skuID);
-        } else {
-          var sku = services.firstWhere((sku) => sku['skuID'] == skuID);
-          double sellingPrice = sku['selling']?.toDouble() ?? 0.0;
-
-          selectedService[skuID]!['selling'] =
-              (selectedService[skuID]!['quantity']! * sellingPrice).toInt();
-        }
-      }
-      int totalQuantity = calculateTotalQuantity(
-          selectedService); // Calculate the total quantity
-      getServiceTotalPrice();
-    });
   }
 
   thedecrement(int skuID) {
@@ -336,34 +312,3 @@ class _AllServicesState extends State<AllServices> {
     }
   }
 }
-// void incrementQuantity(int skuID) {
-//     setState(() {
-//       if (selectedService.containsKey(skuID)) {
-//         print(selectedService);
-//         selectedService[skuID]!['quantity'] =
-//             (selectedService[skuID]!['quantity'] ?? 0) + 1;
-
-//         var sku = services.firstWhere((sku) => sku['skuID'] == skuID);
-//         double sellingPrice = sku['selling']?.toDouble() ?? 0.0;
-
-//         selectedService[skuID]!['selling'] =
-//             (selectedService[skuID]!['quantity']! * sellingPrice).toInt();
-//       } else {
-//         var sku = services.firstWhere((sku) => sku['skuID'] == skuID);
-//         selectedService[skuID] = {
-//           'selling': sku['selling'],
-//           'quantity': 1,
-//           'skuID': skuID,
-//         };
-//       }
-//       // Calculate the total service quantity
-//       int totalServiceQuantity = selectedService.values
-//           .map((service) => service['quantity'] ?? 0)
-//           .reduce((a, b) => a + b);
-
-//       // Update the value of totalServiceQuantityNotifier
-//       totalQuantityNotifier.value = totalServiceQuantity;
-//       getServiceTotalPrice();
-//       print(selectedService);
-//     });
-//   }

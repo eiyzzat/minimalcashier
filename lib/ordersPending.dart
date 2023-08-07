@@ -2,10 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:minimal/test/addMember.dart';
-import 'package:minimal/test/login.dart';
-import 'package:minimal/test/memberPage.dart';
-import 'api.dart';
+import 'package:minimal/member/addMember.dart';
+import 'package:minimal/login.dart';
+import 'package:minimal/member/memberPage.dart';
+import 'exercises/api.dart';
 import 'dart:convert';
 
 class OrdersPending extends StatefulWidget {
@@ -40,6 +40,7 @@ class _OrdersPendingState extends State<OrdersPending> {
   String mobile = "0000000000";
 
   int walkInMemberID = 0;
+  
 
   @override
   void initState() {
@@ -248,12 +249,13 @@ class _OrdersPendingState extends State<OrdersPending> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: GestureDetector(
-                      onTap: ()async {
-
+                      onTap: () async {
+                        await member();
                         await createOrder(context);
                         updateData();
 
-                         Navigator.of(context).pop(walkinOrder);
+                        Navigator.of(context).pop(walkinOrder);
+                        
                         // Navigator.push(
                         //   context,
                         //   MaterialPageRoute(
@@ -504,9 +506,10 @@ class _OrdersPendingState extends State<OrdersPending> {
                                   Padding(
                                     padding: const EdgeInsets.only(left: 8.0),
                                     child: Text(
-                                      DateFormat('dd-MM-yyyy').format(
-                                          DateTime.fromMillisecondsSinceEpoch(
-                                              order['createDate'] * 1000)),
+                                      DateFormat('hh:mm a').format(
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            order['createDate'] * 1000),
+                                      ),
                                       style: const TextStyle(
                                         color: Colors.grey,
                                       ),
@@ -561,13 +564,9 @@ class _OrdersPendingState extends State<OrdersPending> {
     await fetchPendingAndMembers();
     widget.fetchData();
     widget.updateFirst();
-    if(mounted){
-      setState(() {
-
-      
-    });
+    if (mounted) {
+      setState(() {});
     }
-    
   }
 
   Future deleteOrder(int orderId) async {
@@ -643,8 +642,8 @@ class _OrdersPendingState extends State<OrdersPending> {
       Uri.parse('https://order.tunai.io/loyalty/order'),
     );
 
-    var memberID = '21887957';
-    request.bodyFields = {'memberID': memberID};
+    var memberID = walkInMemberID;
+    request.bodyFields = {'memberID': memberID.toString()};
     request.headers.addAll(headers);
 
     http.StreamedResponse response = await request.send();
@@ -671,6 +670,41 @@ class _OrdersPendingState extends State<OrdersPending> {
     } else {
       print(response.reasonPhrase);
     }
+  }
+
+  Future<void> member() async {
+    var headers = {
+      'token': tokenGlobal,
+    };
+    var request = http.Request(
+        'GET', Uri.parse('https://member.tunai.io/cashregister/member/walkin'));
+
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      final responsebody = await response.stream.bytesToString();
+      var body = json.decode(responsebody);
+      Map<String, dynamic> _walkin = body;
+
+      walkin = _walkin['members'];
+
+      if (walkin != null && walkin.isNotEmpty) {
+        for (var i = 0; i < walkin.length; i++) {
+          walkInMemberID = walkin[i]['memberID'];
+        }
+      }
+      setState(() {
+        walkInMemberID = walkin[0]['memberID'];
+      });
+      
+      print("walkin: $walkin");
+    } else {
+      print(response.reasonPhrase);
+    }
+
+    print(walkInMemberID);
   }
 }
 
