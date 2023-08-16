@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:minimal/login.dart';
 import 'dart:convert';
 
+import 'constant/token.dart';
+
 //untuk store skuID,selling,quantity
 Map<int, Map<String, int>> selectedService = {};
 
@@ -106,7 +108,7 @@ class _AllServicesState extends State<AllServices> {
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          childAspectRatio: 1.9,
+                          childAspectRatio: 1.8,
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 10,
                         ),
@@ -292,7 +294,7 @@ class _AllServicesState extends State<AllServices> {
   }
 
   Future<void> fetchServices() async {
-    var headers = {'token': tokenGlobal};
+    var headers = {'token': token};
     var request = http.Request(
         'GET', Uri.parse('https://menu.tunai.io/loyalty/type/1/sku?active=1'));
     request.bodyFields = {};

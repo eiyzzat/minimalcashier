@@ -6,6 +6,7 @@ import 'package:minimal/cart_edit_item.dart';
 import 'package:minimal/textFormating.dart';
 import 'dart:convert';
 import 'cart_display_staff.dart';
+import 'constant/token.dart';
 import 'discount.dart';
 import 'login.dart';
 
@@ -50,6 +51,7 @@ class _TrialCart extends State<Cart> {
 
   int staffCount = 0;
   int nakDisplayQuantity = 0;
+  int nakDisplayPrice = 0;
 
   TextEditingController remarksController = TextEditingController();
 
@@ -239,6 +241,7 @@ class _TrialCart extends State<Cart> {
                                           final itemData = itemList[index];
                                           var otemID =
                                               itemData['otemID'].toString();
+                                              
 
                                           // Create a list to hold the staffCount and staffName for each otems item
                                           List<int> staffCounts = [];
@@ -959,7 +962,7 @@ class _TrialCart extends State<Cart> {
                         child: Text(
                           // totalSubtotal.toStringAsFixed(2),
                           // allTotal.toStringAsFixed(2),
-                          formatDoubleText(allTotal),
+                          formatDoubleText(totalSubtotal),
                           style: const TextStyle(
                               fontSize: 16, color: Colors.black),
                         ),
@@ -1100,8 +1103,17 @@ class _TrialCart extends State<Cart> {
     });
   }
 
+  updatePrice() {
+    print("Update Price: ");
+
+    setState(() {
+      nakDisplayPrice = widget.otems.fold(
+          0, (sum, otems) => sum + int.parse(otems['price'].toString()));
+    });
+  }
+
   Future fetchData() async {
-    var headers = {'token': tokenGlobal};
+    var headers = {'token': token};
     var request = http.Request(
         'GET',
         Uri.parse('https://order.tunai.io/loyalty/order/ ' +
@@ -1138,7 +1150,7 @@ class _TrialCart extends State<Cart> {
 
   Future deleteItem(String otemID) async {
     // int otemInt = int.parse(otemID);
-    var headers = {'token': '$tokenGlobal'};
+    var headers = {'token': '$token'};
     var request = http.Request(
         'POST',
         Uri.parse(
@@ -1160,7 +1172,7 @@ class _TrialCart extends State<Cart> {
   Future deleteAll(List<dynamic> otems) async {
     for (int i = 0; i < otems.length; i++) {
       var otemID = otems[i]['otemID'];
-      var headers = {'token': '$tokenGlobal'};
+      var headers = {'token': '$token'};
       var request = http.Request(
           'POST',
           Uri.parse(
@@ -1221,7 +1233,7 @@ class _TrialCart extends State<Cart> {
 
   Future<void> apigetStaff() async {
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
     };
 
     var request =

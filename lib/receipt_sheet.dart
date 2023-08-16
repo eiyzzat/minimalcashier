@@ -6,6 +6,7 @@ import 'package:minimal/textFormating.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'cashier.dart';
+import 'constant/token.dart';
 import 'login.dart';
 
 class ReceiptSheet extends StatefulWidget {
@@ -344,7 +345,7 @@ class _ReceiptSheetState extends State<ReceiptSheet> {
   }
 
   Future<void> lastcompleteOrder() async {
-    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+    var headers = {'token': token, 'Content-Type': 'application/json'};
 
     var url = Uri.parse(
         'https://order.tunai.io/carwashloyalty/order/${widget.orderId}/complete');
@@ -469,7 +470,7 @@ class _ReceiptSheetState extends State<ReceiptSheet> {
   }
 
   Future<void> generateReceiptPdf(saleID) async {
-    var headers = {'token': tokenGlobal};
+    var headers = {'token': token};
     var request = http.Request('GET',
         Uri.parse('https://order.tunai.io/loyalty/sale/$saleID/receipt/pdf'));
 
@@ -507,7 +508,7 @@ class _ReceiptSheetState extends State<ReceiptSheet> {
 //     // print('Check dekat receipt: ${widget.receiptCalculateSubtotal}');
 //     // print('Check ORDDER ID: ${widget.cartOrderId}');
 
-//     var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+//     var headers = {'token': token, 'Content-Type': 'application/json'};
 
 //     var url = Uri.parse(
 //         'https://order.tunai.io/loyalty/order/${widget.orderId}/complete');

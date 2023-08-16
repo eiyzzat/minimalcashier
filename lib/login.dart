@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/services.dart';
-import 'firstPage.dart';
+import 'constant/token.dart';
+import 'new.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,7 +12,7 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-String tokenGlobal = '';
+
 // bool rememberPassword = false;
 
 class _LoginPageState extends State<LoginPage> {
@@ -143,11 +141,11 @@ class _LoginPageState extends State<LoginPage> {
         passWordController.text,
       );
       setState(() {
-        tokenGlobal = body['token'];
+        token = body['token'];
       });
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => FirstPage()),
+        MaterialPageRoute(builder: (context) => New()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -183,12 +181,12 @@ class _LoginPageState extends State<LoginPage> {
 
   if (savedToken != null) {
     setState(() {
-      tokenGlobal = savedToken;
+      token = savedToken;
     });
     // Token found, navigate to the desired page
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => FirstPage()),
+      MaterialPageRoute(builder: (context) => New()),
     );
   } else {
     if (savedUsername != null && savedPassword != null) {
@@ -223,7 +221,7 @@ class _LoginPageState extends State<LoginPage> {
 //   State<LoginPage> createState() => _LoginPageState();
 // }
 
-// String tokenGlobal = '';
+// String token = '';
 
 // class _LoginPageState extends State<LoginPage> {
 //   var usernameController = TextEditingController();
@@ -336,7 +334,7 @@ class _LoginPageState extends State<LoginPage> {
 //         print(responseBody);
 //         await saveTokenToSharedPreferences(body['token']);
 //         setState(() {
-//           tokenGlobal = body['token'];
+//           token = body['token'];
 //         });
 //         Navigator.push(
 //           context,
@@ -376,7 +374,7 @@ class _LoginPageState extends State<LoginPage> {
 
 //     if (savedToken != null) {
 //       setState(() {
-//         tokenGlobal = savedToken;
+//         token = savedToken;
 //       });
 //       // Token found, navigate to the desired page
 //       Navigator.push(

@@ -151,6 +151,34 @@
 						<string>Cloud Managed Apple Distribution</string>
 					</dict>
 					<key>name</key>
+					<string>image_picker_ios.framework</string>
+					<key>team</key>
+					<dict>
+						<key>id</key>
+						<string>U3B25U6JVG</string>
+						<key>name</key>
+						<string>JULYTECH SDN. BHD.</string>
+					</dict>
+					<key>versionNumber</key>
+					<string>0.0.1</string>
+				</dict>
+				<dict>
+					<key>architectures</key>
+					<array>
+						<string>arm64</string>
+					</array>
+					<key>buildNumber</key>
+					<string>1</string>
+					<key>certificate</key>
+					<dict>
+						<key>SHA1</key>
+						<string>2FCCDC32B311BDE7999DF88EB2350DA093EF285C</string>
+						<key>dateExpires</key>
+						<string>15/03/2024</string>
+						<key>type</key>
+						<string>Cloud Managed Apple Distribution</string>
+					</dict>
+					<key>name</key>
 					<string>shared_preferences_foundation.framework</string>
 					<key>team</key>
 					<dict>

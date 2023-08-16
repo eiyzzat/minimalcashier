@@ -5,8 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:minimal/member/addMember.dart';
 import 'package:minimal/login.dart';
 import 'package:minimal/member/memberPage.dart';
-import 'exercises/api.dart';
 import 'dart:convert';
+
+import 'constant/token.dart';
 
 class OrdersPending extends StatefulWidget {
   const OrdersPending({
@@ -570,7 +571,7 @@ class _OrdersPendingState extends State<OrdersPending> {
   }
 
   Future deleteOrder(int orderId) async {
-    var headers = {'token': tokenGlobal};
+    var headers = {'token': token};
     var request = http.Request('POST',
         Uri.parse('https://order.tunai.io/loyalty/order/$orderId/delete'));
 
@@ -589,7 +590,7 @@ class _OrdersPendingState extends State<OrdersPending> {
 
   Future<Map<String, dynamic>> fetchPendingAndMembers() async {
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
     };
 
     var pendingRequest = http.Request(
@@ -633,7 +634,7 @@ class _OrdersPendingState extends State<OrdersPending> {
 
   Future<void> createOrder(BuildContext context) async {
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
       'Content-Type': 'application/x-www-form-urlencoded'
     };
 
@@ -674,7 +675,7 @@ class _OrdersPendingState extends State<OrdersPending> {
 
   Future<void> member() async {
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
     };
     var request = http.Request(
         'GET', Uri.parse('https://member.tunai.io/cashregister/member/walkin'));

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:minimal/receipt_sheet.dart';
 import 'package:minimal/textFormating.dart';
+import 'constant/token.dart';
 import 'login.dart';
 
 class PaymentSheet extends StatefulWidget {
@@ -132,7 +133,7 @@ class PaymentSheetState extends State<PaymentSheet> {
   Future<void> completeOrder() async {
     bool isConnected = await checkConnectivity();
     if (isConnected) {
-      var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+      var headers = {'token': token, 'Content-Type': 'application/json'};
 
       var url = Uri.parse(
           'https://order.tunai.io/carwashloyalty/order/${widget.orderId}/complete');
@@ -267,7 +268,7 @@ class PaymentSheetState extends State<PaymentSheet> {
   }
 
   Future<void> OthersPayment() async {
-    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+    var headers = {'token': token, 'Content-Type': 'application/json'};
     var request =
         http.Request('GET', Uri.parse('https://loyalty.tunai.io/payment'));
 

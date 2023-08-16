@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:minimal/login.dart';
 import 'package:minimal/cart_staff_item.dart';
 
+import 'constant/token.dart';
+
 class SpecificStaff extends StatefulWidget {
   const SpecificStaff(
       {required this.staffID,
@@ -569,7 +571,7 @@ class _SpecificStaffState extends State<SpecificStaff> {
     print("Dalam otemStaff: $updatedStaffDetails");
     print("Dalam otemStaff: ${widget.cartOrderId}");
 
-    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+    var headers = {'token': token, 'Content-Type': 'application/json'};
 
     for (var i = 0; i < otemIDs.length; i++) {
       // Check if the widget is still mounted before proceeding
@@ -616,7 +618,7 @@ class _SpecificStaffState extends State<SpecificStaff> {
 
     print("itemIDs: $itemIDs");
 
-    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+    var headers = {'token': token, 'Content-Type': 'application/json'};
 
     for (var i = 0; i < itemIDs.length; i++) {
       var request = http.Request(

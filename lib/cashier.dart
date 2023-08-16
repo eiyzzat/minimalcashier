@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'constant/token.dart';
 import 'login.dart';
 
 class Cashier extends StatefulWidget {
@@ -254,7 +255,7 @@ class _CashierState extends State<Cashier> {
 
   Future getStaff() async {
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
     };
 
     var request =
@@ -295,7 +296,7 @@ class _CashierState extends State<Cashier> {
     }
 
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
       'Content-Type': 'application/x-www-form-urlencoded'
     };
 

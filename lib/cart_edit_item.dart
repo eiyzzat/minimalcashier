@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:minimal/testingSelectStaff.dart';
+import 'constant/token.dart';
 import 'login.dart';
 
 //showModalBottom for edit item in each service & product
@@ -1195,7 +1196,7 @@ class _CartEditItemState extends State<CartEditItem> {
 
   Future<void> otemsStaff(
       List<Map<String, dynamic>> updatedStaffDetails) async {
-    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+    var headers = {'token': token, 'Content-Type': 'application/json'};
 
     print("dalam otem: $updatedStaffDetails");
 
@@ -1257,7 +1258,7 @@ class _CartEditItemState extends State<CartEditItem> {
 
   Future changeQty(String otemID, int quantity) async {
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
     };
     var url =
         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/quantity';
@@ -1287,7 +1288,7 @@ class _CartEditItemState extends State<CartEditItem> {
 
   Future<void> changeRemark(String otemID, String remarks) async {
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
     };
     var url =
         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/remarks';
@@ -1315,7 +1316,7 @@ class _CartEditItemState extends State<CartEditItem> {
       return;
     }
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
     };
     var request = http.Request(
         'POST',

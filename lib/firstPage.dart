@@ -5,10 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:minimal/login.dart';
 import 'package:minimal/cart.dart';
 import 'package:minimal/textFormating.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'allProducts.dart';
 import 'allServices.dart';
+import 'constant/token.dart';
+import 'new.dart';
 import 'ordersPending.dart';
 import 'allProductsServices.dart';
 
@@ -122,46 +123,45 @@ class _FirstPage extends State<FirstPage> {
         ),
         leading: IconButton(
           icon: const Icon(
-            Icons.logout,
+            Icons.arrow_back_ios,
             color: Colors.blue,
           ),
           onPressed: () async {
-            // LoginUtils.logout(context, rememberPassword);
-            showCupertinoDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return CupertinoAlertDialog(
-                  title: const Text('Logout'),
-                  content: const Text('Are you sure you want to logout?'),
-                  actions: <Widget>[
-                    CupertinoDialogAction(
-                      child: const Text('Cancel'),
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close the dialog
-                      },
-                    ),
-                    CupertinoDialogAction(
-                      child: Text('Logout'),
-                      onPressed: () async {
+            Navigator.push(context,  MaterialPageRoute(builder: (context) => New()));
+            
+            // showCupertinoDialog(
+            //   context: context,
+            //   builder: (BuildContext context) {
+            //     return CupertinoAlertDialog(
+            //       title: const Text('Logout'),
+            //       content: const Text('Are you sure you want to logout?'),
+            //       actions: <Widget>[
+            //         CupertinoDialogAction(
+            //           child: const Text('Cancel'),
+            //           onPressed: () {
+            //             Navigator.of(context).pop(); // Close the dialog
+            //           },
+            //         ),
+            //         CupertinoDialogAction(
+            //           child: Text('Logout'),
+            //           onPressed: () async {
                         
-                        Navigator.of(context).pop(); // Close the dialog
-                        SharedPreferences pref = await SharedPreferences.getInstance();
-                        await pref.remove("loginToken");
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (context) => LoginPage()),
-                          (route) => false,
-                        );
+            //             Navigator.of(context).pop(); // Close the dialog
+            //             SharedPreferences pref = await SharedPreferences.getInstance();
+            //             await pref.remove("loginToken");
+            //             Navigator.of(context).pushAndRemoveUntil(
+            //               MaterialPageRoute(builder: (context) => LoginPage()),
+            //               (route) => false,
+            //             );
 
                      
-                        // LoginUtils.logout(context,
-                        //     rememberPassword); // Call the logout function from LoginUtils class.
-                      },
-                      isDestructiveAction: true,
-                    ),
-                  ],
-                );
-              },
-            );
+            //              },
+            //           isDestructiveAction: true,
+            //         ),
+            //       ],
+            //     );
+            //   },
+            // );
           },
           iconSize: 30,
         ),
@@ -191,6 +191,7 @@ class _FirstPage extends State<FirstPage> {
       ),
       body: Stack(
         children: [
+          //fix sini
           Container(
             color: Colors.grey[200],
           ),
@@ -817,7 +818,7 @@ class _FirstPage extends State<FirstPage> {
         var quantity = itemData['quantity'];
         var price = itemData['selling'] / quantity;
         var headers = {
-          'token': tokenGlobal,
+          'token': token,
           'Content-Type': 'application/x-www-form-urlencoded',
         };
         var request = http.Request(
@@ -868,7 +869,7 @@ class _FirstPage extends State<FirstPage> {
   }
 
   fetchData() async {
-    var headers = {'token': tokenGlobal};
+    var headers = {'token': token};
     var request = http.Request(
         'GET',
         Uri.parse(
@@ -901,7 +902,7 @@ class _FirstPage extends State<FirstPage> {
 
   Future<void> fetchPendingAndMembers() async {
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
     };
 
     var pendingRequest = http.Request(
@@ -1672,7 +1673,7 @@ if(mounted){
 //         var quantity = itemData['quantity'];
 
 //         var headers = {
-//           'token': tokenGlobal,
+//           'token': token,
 //           'Content-Type': 'application/x-www-form-urlencoded',
 //         };
 //         var request = http.Request(
@@ -1757,7 +1758,7 @@ if(mounted){
 //         var quantity = itemData['quantity'];
 
 //         var headers = {
-//           'token': tokenGlobal,
+//           'token': token,
 //           'Content-Type': 'application/x-www-form-urlencoded',
 //         };
 //         var request = http.Request(
@@ -1817,7 +1818,7 @@ if(mounted){
 //   // }
 
 //   theorder() async {
-//     var headers = {'token': tokenGlobal};
+//     var headers = {'token': token};
 //     var request = http.Request(
 //         'GET', Uri.parse('https://order.tunai.io/loyalty/order?active=1'));
 
@@ -1841,7 +1842,7 @@ if(mounted){
 //   }
 
 //   getMember() {
-//     var headers = {'token': tokenGlobal};
+//     var headers = {'token': token};
 //     var request = http.Request(
 //         'GET', Uri.parse('https://order.tunai.io/loyalty/order?active=1'));
 
@@ -1866,7 +1867,7 @@ if(mounted){
 
 //   Future<Map<String, dynamic>> fetchPendingAndMembers() async {
 //     var headers = {
-//       'token': tokenGlobal,
+//       'token': token,
 //     };
 
 //     var pendingRequest = http.Request(
@@ -1961,7 +1962,7 @@ if(mounted){
   //       var quantity = itemData['quantity'];
 
   //       var headers = {
-  //         'token': tokenGlobal,
+  //         'token': token,
   //         'Content-Type': 'application/x-www-form-urlencoded',
   //       };
   //       var request = http.Request(
@@ -2020,7 +2021,7 @@ if(mounted){
   // }
 
   // theorder() async {
-  //   var headers = {'token': tokenGlobal};
+  //   var headers = {'token': token};
   //   var request = http.Request(
   //       'GET', Uri.parse('https://order.tunai.io/loyalty/order?active=1'));
 
@@ -2044,7 +2045,7 @@ if(mounted){
   // }
 
   // getMember() {
-  //   var headers = {'token': tokenGlobal};
+  //   var headers = {'token': token};
   //   var request = http.Request(
   //       'GET', Uri.parse('https://order.tunai.io/loyalty/order?active=1'));
 

@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:minimal/login.dart';
 import 'dart:convert';
 
+import 'constant/token.dart';
+
 //untuk store skuID,selling,quantity
 Map<int, Map<String, dynamic>> selectedProductServices = {};
 
@@ -76,7 +78,7 @@ class _AllProductServicesState extends State<AllProductServices> {
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 1.9,
+                childAspectRatio: 1.8,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
               ),
@@ -100,10 +102,14 @@ class _AllProductServicesState extends State<AllProductServices> {
                           children: [
                             Row(
                               children: [
-                                Text(
-                                  sku['name'],
-                                  style: const TextStyle(
-                                      fontSize: 16, color: Colors.black),
+                                Flexible(
+                                  child: Text(
+                                    sku['name'],
+                                    style: const TextStyle(
+                                        fontSize: 16, color: Colors.black),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ],
                             ),
@@ -287,7 +293,7 @@ class _AllProductServicesState extends State<AllProductServices> {
   }
 
   Future<void> fetchProductServices() async {
-    var headers = {'token': tokenGlobal};
+    var headers = {'token': token};
     var request =
         http.Request('GET', Uri.parse('https://menu.tunai.io/loyalty/sku'));
 

@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import '../../../constant/token.dart';
 import '../login.dart';
 
 class CarMemberPage extends StatefulWidget {
@@ -58,7 +59,7 @@ class _CarMemberPageState extends State<CarMemberPage>
   }
 
   Future<void> getInformation() async {
-    var headers = {'token': tokenGlobal};
+    var headers = {'token': token};
     var request = http.Request(
         'GET', Uri.parse('https://member.tunai.io/cashregister/member'));
     request.bodyFields = {};
@@ -314,7 +315,7 @@ class _CarMemberPageState extends State<CarMemberPage>
 
   getMemberBox(int index) {
     getTotalVoucher() async {
-      var headers = {'token': tokenGlobal};
+      var headers = {'token': token};
       var request = http.Request(
           'GET',
           Uri.parse('https://member.tunai.io/cashregister/member/' +
@@ -820,7 +821,7 @@ class _CarMemberPageState extends State<CarMemberPage>
 
   Future createOrder(String memberID) async {
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
       'Content-Type': 'application/x-www-form-urlencoded'
     };
 

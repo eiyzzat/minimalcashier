@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:minimal/discount_item.dart';
 import 'package:minimal/login.dart';
 
+import 'constant/token.dart';
+
 class Discount extends StatefulWidget {
   Discount(
       {Key? key,
@@ -415,7 +417,7 @@ class _DiscountState extends State<Discount> {
       print("qty:$quantity ");
       print("price:$price ");
       var headers = {
-        'token': tokenGlobal,
+        'token': token,
       };
       var request = http.Request(
         'POST',

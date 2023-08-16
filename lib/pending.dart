@@ -6,8 +6,8 @@ import 'package:minimal/login.dart';
 import 'package:minimal/cart_staff_item.dart';
 import 'package:minimal/cart.dart';
 import 'package:minimal/testingSelectStaff.dart';
-import 'exercises/api.dart';
 import '../function.dart';
+import 'constant/token.dart';
 import 'discount.dart';
 
 //showModalBottom for edit item in each service & product
@@ -986,7 +986,7 @@ class _EditItemState extends State<EditItem> {
 
   Future<void> otemsStaff(
       List<Map<String, dynamic>> updatedStaffDetails) async {
-    var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+    var headers = {'token': token, 'Content-Type': 'application/json'};
 
     // Check if the widget is still mounted before proceeding
     if (!mounted) {
@@ -1034,7 +1034,7 @@ class _EditItemState extends State<EditItem> {
 
   Future<void> changeRemark(String otemID, String remarks) async {
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
     };
     var url =
         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/remarks';
@@ -1057,7 +1057,7 @@ class _EditItemState extends State<EditItem> {
 
   Future changeQty(String otemID, int quantity) async {
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
     };
     var url =
         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/quantity';
@@ -1094,7 +1094,7 @@ class _EditItemState extends State<EditItem> {
       return;
     }
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
     };
     var request = http.Request(
         'POST',
@@ -2248,7 +2248,7 @@ class _StaffInEditItemState extends State<StaffInEditItem> {
 //     print("Dalam otemStaff: $updatedStaffDetails");
 //     print("Dalam otemStaff: ${widget.cartOrderId}");
 
-//     var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+//     var headers = {'token': token, 'Content-Type': 'application/json'};
 
 //     for (var i = 0; i < otemIDs.length; i++) {
 //       // Check if the widget is still mounted before proceeding
@@ -2295,7 +2295,7 @@ class _StaffInEditItemState extends State<StaffInEditItem> {
 
 //     print("itemIDs: $itemIDs");
 
-//     var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+//     var headers = {'token': token, 'Content-Type': 'application/json'};
 
 //     for (var i = 0; i < itemIDs.length; i++) {
 //       var request = http.Request(

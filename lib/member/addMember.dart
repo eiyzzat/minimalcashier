@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../../constant/token.dart';
 import '../login.dart';
 
 class AddMember extends StatefulWidget {
@@ -466,7 +467,7 @@ class _AddMemberState extends State<AddMember> {
   addMember(context) async {
     String phoneText = _selectedCountryCode['code']! + _phoneController.text;
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
       'Content-Type': 'application/x-www-form-urlencoded'
     };
 
@@ -509,7 +510,7 @@ class _AddMemberState extends State<AddMember> {
 
   createOrder() async {
     var headers = {
-      'token': tokenGlobal,
+      'token': token,
       'Content-Type': 'application/x-www-form-urlencoded'
     };
 

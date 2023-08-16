@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:minimal/login.dart';
 import 'dart:convert';
 
+import 'constant/token.dart';
+
 //untuk store skuID,selling,quantity
 Map<int, Map<String, dynamic>> selectedProduct = {};
 
@@ -100,7 +102,7 @@ class _AllProductsState extends State<AllProducts> {
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 1.9,
+                        childAspectRatio: 1.8,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
                       ),
@@ -124,11 +126,15 @@ class _AllProductsState extends State<AllProducts> {
                                   children: [
                                     Row(
                                       children: [
-                                        Text(
-                                          sku['name'],
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.black),
+                                        Flexible(
+                                          child: Text(
+                                            sku['name'],
+                                            style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.black),
+                                                maxLines: 2,   
+                                               overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -279,7 +285,7 @@ class _AllProductsState extends State<AllProducts> {
   }
 
   Future<void> fetchProduct() async {
-    var headers = {'token': tokenGlobal};
+    var headers = {'token': token};
     var request = http.Request(
         'GET', Uri.parse('https://menu.tunai.io/loyalty/type/2/sku?active=1'));
     request.bodyFields = {};

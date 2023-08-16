@@ -2798,7 +2798,7 @@
 
 //   Future<void> otemsStaff(
 //       List<Map<String, dynamic>> updatedStaffDetails) async {
-//     var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+//     var headers = {'token': token, 'Content-Type': 'application/json'};
 
 //     print("dalam otem: $updatedStaffDetails");
 
@@ -2849,7 +2849,7 @@
 
 //   Future changeQty(String otemID, int quantity) async {
 //     var headers = {
-//       'token': tokenGlobal,
+//       'token': token,
 //     };
 //     var url =
 //         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/quantity';
@@ -2879,7 +2879,7 @@
 
 //   Future<void> changeRemark(String otemID, String remarks) async {
 //     var headers = {
-//       'token': tokenGlobal,
+//       'token': token,
 //     };
 //     var url =
 //         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/remarks';
@@ -2909,7 +2909,7 @@
 //       return;
 //     }
 //     var headers = {
-//       'token': tokenGlobal,
+//       'token': token,
 //     };
 //     var request = http.Request(
 //         'POST',
@@ -3922,7 +3922,7 @@
 
 //   Future<void> otemsStaff(
 //       List<Map<String, dynamic>> updatedStaffDetails) async {
-//     var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+//     var headers = {'token': token, 'Content-Type': 'application/json'};
 
 //     // Check if the widget is still mounted before proceeding
 //     if (!mounted) {
@@ -3970,7 +3970,7 @@
 
 //   Future<void> changeRemark(String otemID, String remarks) async {
 //     var headers = {
-//       'token': tokenGlobal,
+//       'token': token,
 //     };
 //     var url =
 //         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/remarks';
@@ -3993,7 +3993,7 @@
 
 //   Future changeQty(String otemID, int quantity) async {
 //     var headers = {
-//       'token': tokenGlobal,
+//       'token': token,
 //     };
 //     var url =
 //         'https://order.tunai.io/loyalty/order/${widget.cartOrderId}/otems/$otemID/quantity';
@@ -4030,7 +4030,7 @@
 //       return;
 //     }
 //     var headers = {
-//       'token': tokenGlobal,
+//       'token': token,
 //     };
 //     var request = http.Request(
 //         'POST',
@@ -5155,7 +5155,7 @@
 //     print("Dalam otemStaff: $updatedStaffDetails");
 //     print("Dalam otemStaff: ${widget.cartOrderId}");
 
-//     var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+//     var headers = {'token': token, 'Content-Type': 'application/json'};
 
 //     for (var i = 0; i < otemIDs.length; i++) {
 //       // Check if the widget is still mounted before proceeding
@@ -5202,7 +5202,7 @@
 
 //     print("itemIDs: $itemIDs");
 
-//     var headers = {'token': tokenGlobal, 'Content-Type': 'application/json'};
+//     var headers = {'token': token, 'Content-Type': 'application/json'};
 
 //     for (var i = 0; i < itemIDs.length; i++) {
 //       // Check if the widget is still mounted before proceeding
